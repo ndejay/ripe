@@ -1,4 +1,4 @@
-require 'ripe-multi_block'
+require_relative 'multi_block'
 
 class SerialBlock < MultiBlock
   def initialize(*blocks)

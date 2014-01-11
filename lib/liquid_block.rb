@@ -1,5 +1,5 @@
 require 'liquid'
-require 'ripe-filter'
+require_relative 'filter'
 
 class LiquidBlock < Block
   def initialize(filename, vars = {})
@@ -14,7 +14,7 @@ class LiquidBlock < Block
   def command
     vars = @vars.inject({}) { |memo, (k, v)| memo[k.to_s] = v; memo }
 
-    template = Liquid::Template.parse(File.new("#{@filename}").read) 
+    template = Liquid::Template.parse(File.new("#{@filename}").read)
     template.render(vars)
   end
 end

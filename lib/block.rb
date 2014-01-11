@@ -1,5 +1,5 @@
-require 'ripe-parallel_block'
-require 'ripe-serial_block'
+require_relative 'parallel_block'
+require_relative 'serial_block'
 
 class Block
   attr_reader :id, :blocks

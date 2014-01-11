@@ -1,7 +1,7 @@
 require 'fileutils'
 require 'pathname'
-require 'ripe-block'
-require 'ripe-liquid_block'
+require_relative 'block'
+require_relative 'liquid_block'
 
 class Launcher
   def initialize(callback, vars = {})
@@ -12,7 +12,7 @@ class Launcher
     id = samples.join('.')
     dir = "#{@vars[:wd]}/.ripe/#{@vars[:handle]}/#{id}"
     root = SerialBlock.new(*samples.collect(&@callback))
-    
+
     # Preorder traversal of blocks -- assign incremental numbers starting from
     # 1 to each node as it is being traversed.
     i, post_var_assign = 0, lambda { |block|
@@ -28,14 +28,14 @@ class Launcher
       stderr:  "#{dir}/job.stderr",
       command: root.command
     }) # vars > @vars
-    
+
     # Directory
     FileUtils.mkdir_p(dir)
 
     # Job file
     filename = "#{dir}/job.sh"
     file = File.new("#{dir}/job.sh", 'w')
-    file.puts LiquidBlock.new("#{Pathname.new(__FILE__).dirname}/ripe-moab.sh", vars).command
+    file.puts LiquidBlock.new("#{$RIPE_PATH}/moab.sh", vars).command
     file.close
 
     puts filename
