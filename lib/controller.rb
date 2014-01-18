@@ -40,15 +40,19 @@ class Controller
     FileUtils.rm_r(@repository_path) if @has_repository
   end
 
-  def prepare(samples, callback, vars = {})
+  def validate_repository
     raise 'fatal: Not a Ripe repository: .ripe' if !@has_repository
+  end
+
+  def prepare(samples, callback, vars = {})
+    validate_repository
 
     vars[:group_num] ||= 1
     vars[:wd] ||= @wd
 
     samples.each_slice(vars[:group_num]).each do |slice_samples|
       # Record
-      group = Group.create(handle: vars[:handle])
+      group = Group.create(handle: vars[:handle], status: 'prepared')
 
       # Processing
       group_dir = "#{@repository_path}/group_#{group.id}"
@@ -82,6 +86,49 @@ class Controller
       file = File.new("#{group_dir}/job.sh", 'w')
       file.puts LiquidBlock.new("#{$RIPE_PATH}/moab.sh", group_vars).command
       file.close
+    end
+  end
+
+  def start(handle)
+    validate_repository
+
+    Group.where(handle: handle, status: 'prepared').each do |group|
+      group.moab_id = `msub #{@repository_path}/group_#{group.id}/job.sh`.strip
+      group.status = 'started'
+      group.save
+    end
+  end
+
+  def list(handle, statuses: ['prepared', 'started', 'cancelled'])
+    validate_repository
+    
+    $stdout.puts "Handle\tID\tStatus\tMoab ID\tSamples"
+    statuses.each do |status|
+      Group.where(handle: handle, status: status).each do |group|
+        samples = group.tasks.map { |task| task.sample }.join(', ')
+        $stdout.puts "#{group.handle}\t#{group.id}\t#{group.status}\t#{group.moab_id}\t#{samples}"
+      end
+    end
+  end
+
+  def cancel(handle)
+    validate_repository
+
+    Group.where(handle: handle, status: 'started').each do |group|
+      `canceljob #{group.moab_id}`
+      group.status = 'cancelled'
+      group.save
+    end
+  end
+
+  def remove(handle, statuses = ['prepared', 'cancelled'])
+    validate_repository
+
+    statuses.each do |status|
+      Group.where(handle: handle, status: status).each do |group|
+        FileUtils.rm_r "#{@repository_path}/group_#{group.id}"
+        group.destroy
+      end
     end
   end
 end
