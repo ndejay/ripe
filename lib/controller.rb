@@ -61,7 +61,37 @@ class Controller
     Group.where(handle: handle, status: 'prepared').each(&:start)
   end
 
-  def list(handle, statuses: ['prepared', 'started', 'cancelled'])
+  def update
+    validate_repository
+
+    # This method can use some optimization.
+
+    sections = {
+      'active'  => `showq -u $(whoami) -r -n | grep $(whoami) | cut -f1 -d' '`,
+      'idle'    => `showq -u $(whoami) -i -n | grep $(whoami) | cut -f1 -d' '`,
+      'blocked' => `showq -u $(whoami) -b -n | grep $(whoami) | cut -f1 -d' '` 
+    }
+
+    sections.each do |status, jobs|
+      jobs.split('\n').each do |job|
+        group = Group.find(job)
+        if group && group.status != 'cancelled'
+          group.status = status
+          group.save
+        end
+      end
+    end
+
+    Group.where(status: 'active').each do |group|
+      if !sections['active'].include? group.id
+        group.status = 'completed'
+        group.save
+      end
+    end
+  end
+
+  def list(handle, statuses: ['unprepared', 'prepared', 'idle', 'blocked',
+                              'active', 'completed', 'cancelled'])
     validate_repository
 
     $stdout.puts "Handle\tID\tStatus\tMoab ID\tSamples"
@@ -75,7 +105,10 @@ class Controller
   def cancel(handle)
     validate_repository
 
-    Group.where(handle: handle, status: 'started').each(&:cancel)
+    statuses = ['idle', 'blocked', 'active']
+    statuses.each do |status|
+      Group.where(handle: handle, status: status).each(&:cancel)
+    end
   end
 
   def remove(handle, statuses = ['prepared', 'cancelled'])

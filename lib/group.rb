@@ -58,7 +58,7 @@ class Group < ActiveRecord::Base
   def start
     # if group.status == 'prepared'
     self.moab_id = `msub '#{dir}/job.sh'`.strip
-    self.status = 'started'
+    self.status = 'idle'
     self.save
   end
 
