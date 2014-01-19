@@ -2,8 +2,10 @@ require 'active_record'
 require 'fileutils'
 require_relative 'block'
 require_relative 'group'
+require_relative 'group_migration'
 require_relative 'liquid_block'
 require_relative 'task'
+require_relative 'task_migration'
 
 class Controller
   def initialize(wd = "")
@@ -29,8 +31,8 @@ class Controller
 
     begin
       attach
-      Group::Migration.up
-      Task::Migration.up
+      GroupMigration.up
+      TaskMigration.up
     rescue
       destroy
     end
