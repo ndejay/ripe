@@ -47,66 +47,25 @@ class Controller
   def prepare(samples, callback, vars = {})
     validate_repository
 
-    vars[:group_num] ||= 1
-    vars[:wd] ||= @wd
-
     samples.each_slice(vars[:group_num]).each do |slice_samples|
-      # Record
-      group = Group.create(handle: vars[:handle], status: 'prepared')
-
-      # Processing
-      group_dir = "#{@repository_path}/group_#{group.id}"
-      group_blocks = slice_samples.map do |sample|
-        task = group.tasks.create(sample: sample)
-        task_dir = "#{group_dir}/task_#{task.id}"
-        task_block = callback.call(sample)
-
-        FileUtils.mkdir_p(task_dir)
-
-        # Preorder traversal of blocks -- assign incremental numbers starting from
-        # 1 to each node as it is being traversed.
-        i, post_var_assign = 0, lambda do |block|
-          block.blocks.length == 0 ?
-            block.vars.merge!(log: "#{task_dir}/#{i += 1}.log") :
-          block.blocks.each(&post_var_assign)
-        end
-        post_var_assign.call(task_block)
-
-        task_block
-      end
-
-      group_vars = vars.merge({
-        name:    group.id,
-        stdout:  "#{group_dir}/job.stdout",
-        stderr:  "#{group_dir}/job.stderr",
-        command: SerialBlock.new(*group_blocks).command
-      }) # _ > vars
-
-      # Job file
-      file = File.new("#{group_dir}/job.sh", 'w')
-      file.puts LiquidBlock.new("#{$RIPE_PATH}/moab.sh", group_vars).command
-      file.close
+      group = Group.create(handle: vars[:handle])
+      group.prepare(slice_samples, callback, {wd: @wd}.merge(vars))
     end
   end
 
   def start(handle)
     validate_repository
 
-    Group.where(handle: handle, status: 'prepared').each do |group|
-      group.moab_id = `msub #{@repository_path}/group_#{group.id}/job.sh`.strip
-      group.status = 'started'
-      group.save
-    end
+    Group.where(handle: handle, status: 'prepared').each(&:start)
   end
 
   def list(handle, statuses: ['prepared', 'started', 'cancelled'])
     validate_repository
-    
+
     $stdout.puts "Handle\tID\tStatus\tMoab ID\tSamples"
     statuses.each do |status|
       Group.where(handle: handle, status: status).each do |group|
-        samples = group.tasks.map { |task| task.sample }.join(', ')
-        $stdout.puts "#{group.handle}\t#{group.id}\t#{group.status}\t#{group.moab_id}\t#{samples}"
+        $stdout.puts "#{group.handle}\t#{group.id}\t#{group.status}\t#{group.moab_id}\t#{group.samples}"
       end
     end
   end
@@ -114,21 +73,14 @@ class Controller
   def cancel(handle)
     validate_repository
 
-    Group.where(handle: handle, status: 'started').each do |group|
-      `canceljob #{group.moab_id}`
-      group.status = 'cancelled'
-      group.save
-    end
+    Group.where(handle: handle, status: 'started').each(&:cancel)
   end
 
   def remove(handle, statuses = ['prepared', 'cancelled'])
     validate_repository
 
     statuses.each do |status|
-      Group.where(handle: handle, status: status).each do |group|
-        FileUtils.rm_r "#{@repository_path}/group_#{group.id}"
-        group.destroy
-      end
+      Group.where(handle: handle, status: status).each(&:destroy)
     end
   end
 end
