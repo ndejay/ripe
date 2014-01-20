@@ -5,8 +5,8 @@ class GroupMigration < ActiveRecord::Migration
   def self.up
     create_table :groups do |t|
       t.string :handle
-      t.string :status, :default => 'unprepared'
-      t.string :moab_id, :default => nil
+      t.string :status, default: :unprepared
+      t.string :moab_id
     end
   end
 

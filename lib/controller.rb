@@ -48,7 +48,6 @@ class Controller
 
   def prepare(samples, callback, vars = {})
     validate_repository
-
     samples.each_slice(vars[:group_num]).each do |slice_samples|
       group = Group.create(handle: vars[:handle])
       group.prepare(slice_samples, callback, {wd: @wd}.merge(vars))
@@ -57,64 +56,57 @@ class Controller
 
   def start(handle)
     validate_repository
-
-    Group.where(handle: handle, status: 'prepared').each(&:start)
+    Group.where(handle: handle, status: :prepared).each(&:start)
   end
 
   def update
     validate_repository
 
-    # This method can use some optimization.
+    lists = {idle: '-i', blocked: '-b', active: '-r'}.map do |status, op|
+      value = `showq -u $(whoami) #{op} -n | grep $(whoami) | cut -f1 -d' '`
+      {status => value.split("\n").map(&:to_i)}
+    end
+    
+    lists.inject(&:merge).each do |status, ids|
+      # Update status
+      ids.each do |id|
+        group = Group.find(id)
+        group.update(status: status) unless group.cancelled?
+      end
 
-    sections = {
-      'active'  => `showq -u $(whoami) -r -n | grep $(whoami) | cut -f1 -d' '`,
-      'idle'    => `showq -u $(whoami) -i -n | grep $(whoami) | cut -f1 -d' '`,
-      'blocked' => `showq -u $(whoami) -b -n | grep $(whoami) | cut -f1 -d' '` 
-    }
-
-    sections.each do |status, jobs|
-      jobs.split('\n').each do |job|
-        group = Group.find(job)
-        if group && group.status != 'cancelled'
-          group.status = status
-          group.save
-        end
+      # Mark groups that were previously in active, blocked or idle as completed
+      # if they cannot be found anymore.
+      Group.where(status: status).each do |group|
+        group.update(status: :completed) unless ids.include? group.id
       end
     end
 
-    Group.where(status: 'active').each do |group|
-      if !sections['active'].include? group.id
-        group.status = 'completed'
-        group.save
-      end
-    end
+    nil
   end
 
-  def list(handle, statuses: ['unprepared', 'prepared', 'idle', 'blocked',
-                              'active', 'completed', 'cancelled'])
+  def list(handle: nil, statuses: [:unprepared, :prepared, :idle, :blocked, :active,
+                                   :completed, :cancelled])
     validate_repository
-
-    $stdout.puts "Handle\tID\tStatus\tMoab ID\tSamples"
-    statuses.each do |status|
-      Group.where(handle: handle, status: status).each do |group|
-        $stdout.puts "#{group.handle}\t#{group.id}\t#{group.status}\t#{group.moab_id}\t#{group.samples}"
+    output = "Handle\tID\tStatus\tMoabID\tSamples\n"
+    output << statuses.flat_map { |status|
+      filter = handle ? Group.where(handle: handle) : Group
+      filter.where(status: status).map do |group|
+        [group.handle, group.id, group.status,
+         group.moab_id ? group.moab_id : "NA",
+         group.tasks.pluck(:sample)].join("\t")
       end
-    end
+    }.join("\n")
+    puts `echo -e "#{output}" | column -t`
   end
 
   def cancel(handle)
     validate_repository
-
-    statuses = ['idle', 'blocked', 'active']
-    statuses.each do |status|
-      Group.where(handle: handle, status: status).each(&:cancel)
-    end
+    Group.where(handle: handle).select(&:started?).each(&:cancel)
   end
 
-  def remove(handle, statuses = ['prepared', 'cancelled'])
+  def remove(handle, statuses = [:prepared, :cancelled])
     validate_repository
-
-    statuses.each do |status|
+    statuses.flat_map do |status|
       Group.where(handle: handle, status: status).each(&:destroy)
     end
   end

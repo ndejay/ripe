@@ -5,24 +5,52 @@ require_relative 'task'
 class Group < ActiveRecord::Base
   has_many :tasks, dependent: :destroy
 
+  def unprepared?
+    self.status == :unprepared
+  end
+
+  def prepared?
+    self.status == :prepared
+  end
+
+  def idle?
+    self.status == :idle
+  end
+
+  def blocked?
+    self.status == :blocked
+  end
+
+  def active?
+    self.status == :active
+  end
+
+  def completed?
+    self.status == :completed
+  end
+
+  def cancelled?
+    self.status == :cancelled
+  end
+
   def dir
     ".ripe/group_#{self.id}"
   end
 
-  def samples
-    self.tasks.map { |task| task.sample }
-  end
-
   after_create do
-    FileUtils.mkdir_p dir if !Dir.exists? dir
+    FileUtils.mkdir_p dir # if !Dir.exists? dir
   end
 
   before_destroy do
-    FileUtils.rm_r dir if Dir.exists? dir
+    FileUtils.rm_r dir # if Dir.exists? dir
+  end
+
+  def prepare!(samples, callback, vars = {})
+    raise "Group #{id} could not be prepared: already prepared" unless self.unprepared?
+    prepare
   end
 
   def prepare(samples, callback, vars = {})
-    # if group.status == 'unprepared'
     blocks = samples.map do |sample|
       task = self.tasks.create(sample: sample)
 
@@ -44,28 +72,31 @@ class Group < ActiveRecord::Base
       stdout:  "#{dir}/job.stdout",
       stderr:  "#{dir}/job.stderr",
       command: SerialBlock.new(*blocks).command
-    }) 
+    })
 
-    # Job file
     file = File.new("#{dir}/job.sh", 'w')
-    file.puts LiquidBlock.new("#{$RIPE_PATH}/moab.sh", vars).command
+    file.puts LiquidBlock.new("#{$RIPE_PATH}/share/moab.sh", vars).command
     file.close
 
-    self.status = 'prepared'
-    self.save
+    update(status: :prepared)
+  end
+
+  def start!
+    raise "Group #{id} could not be started: not prepared" unless self.unprepared?
+    start
   end
 
   def start
-    # if group.status == 'prepared'
-    self.moab_id = `msub '#{dir}/job.sh'`.strip
-    self.status = 'idle'
-    self.save
+    update(status: :idle, moab_id: `msub '#{dir}/job.sh'`.strip)
+  end
+
+  def cancel!
+    raise "Group #{id} could not be cancelled: not started" unless self.started?
+    cancel
   end
 
   def cancel
-    # if self.moab_id
     `canceljob #{self.moab_id}`
-    self.status = 'cancelled'
-    self.save
+    update(status: :cancelled)
   end
 end
