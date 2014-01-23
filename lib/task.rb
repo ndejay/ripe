@@ -4,6 +4,7 @@ require_relative 'group'
 
 class Task < ActiveRecord::Base
   belongs_to :group
+  has_many :subtasks, dependent: :destroy
 
   def dir
     ".ripe/group_#{self.group_id}/task_#{self.id}"

@@ -4,13 +4,14 @@ require_relative 'block'
 require_relative 'group'
 require_relative 'group_migration'
 require_relative 'liquid_block'
+require_relative 'subtask'
+require_relative 'subtask_migration'
 require_relative 'task'
 require_relative 'task_migration'
 
 class Controller
-  def initialize(wd = "")
-    @wd ||= "#{Dir.pwd}"
-    @repository_path = "#{@wd}/.ripe"
+  def initialize
+    @repository_path = '.ripe'
     @has_repository = Dir.exists? @repository_path
   end
 
@@ -33,6 +34,7 @@ class Controller
       attach
       GroupMigration.up
       TaskMigration.up
+      SubtaskMigration.up
     rescue
       destroy
     end

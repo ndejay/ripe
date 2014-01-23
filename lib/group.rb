@@ -1,9 +1,11 @@
 require 'active_record'
 require 'fileutils'
+require_relative 'subtask'
 require_relative 'task'
 
 class Group < ActiveRecord::Base
   has_many :tasks, dependent: :destroy
+  has_many :subtasks, through: :tasks
 
   def dir
     ".ripe/group_#{self.id}"
@@ -31,12 +33,17 @@ class Group < ActiveRecord::Base
       blocks = group_samples.map do |sample|
         task = group.tasks.create(sample: sample)
 
-        # Preorder traversal of blocks -- assign incremental numbers starting from
-        # 1 to each node as it is being traversed.
-        i, post_var_assign = 0, lambda do |subblock|
-          subblock.blocks.length == 0 ?
-            subblock.vars.merge!(log: "#{vars[:wd]}/#{task.dir}/#{i += 1}.log") :
-          subblock.blocks.each(&post_var_assign)
+        ## Preorder traversal of blocks -- assign incremental numbers starting from
+        ## 1 to each node as it is being traversed.
+        # i = 0
+        post_var_assign = lambda do |subblock|
+          if subblock.blocks.length == 0
+            # log: #{i += 1}
+            subtask = task.subtasks.create(block: subblock.id)
+            subblock.vars.merge!(log: "#{vars[:wd]}/#{task.dir}/subtask_#{subtask.id}.log")
+          else
+            subblock.blocks.each(&post_var_assign)
+          end
         end
 
         block = callback.call(sample)
@@ -81,5 +88,13 @@ class Group < ActiveRecord::Base
   def cancel
     `canceljob #{self.moab_id}`
     update(status: :cancelled)
+  end
+
+  def job
+    "#{self.dir}/job.sh"
+  end
+
+  def out
+    "#{self.dir}/job.stdout"
   end
 end
