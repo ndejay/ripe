@@ -1,3 +1,0 @@
-#!/usr/bin/env sh
-
-irb -r 'ripe-irb.rb'
