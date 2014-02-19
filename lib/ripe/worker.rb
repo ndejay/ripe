@@ -32,11 +32,6 @@ module Ripe
       FileUtils.rm_r dir # if Dir.exists? dir
     end
 
-    def prepare!(samples, callback, vars = {})
-      raise "Worker #{id} could not be prepared: already prepared" unless self.status != 'unprepared'
-      prepare
-    end
-
     def self.prepare(samples, callback, vars = {})
       vars = {wd: Dir.pwd}.merge(vars)
 
@@ -75,6 +70,28 @@ module Ripe
 
         worker.update(status: :prepared)
         worker
+      end
+    end
+
+    def self.sync
+      lists = {idle: '-i', blocked: '-b', active:  '-r'}
+      lists = lists.map do |status, op|
+        value = `showq -u $(whoami) #{op} | grep $(whoami) | cut -f1 -d' '`
+        {status => value.split("\n")}
+      end
+
+      lists.inject(&:merge).each do |status, moab_ids|
+        # Update status
+        moab_ids.each do |moab_id|
+          worker = Worker.find_by(moab_id: moab_id)
+          worker.update(status: status) if worker && worker.status != 'cancelled'
+        end
+
+        # Mark workers that were previously in active, blocked or idle as completed
+        # if they cannot be found anymore.
+        Worker.where(status: status).each do |worker|
+          worker.update(status: :completed) unless moab_ids.include? worker.moab_id
+        end
       end
     end
 
