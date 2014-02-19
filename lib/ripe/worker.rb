@@ -61,14 +61,19 @@ module Ripe
           name:    worker.id,
           stdout:  worker.stdout,
           stderr:  worker.stderr,
-          command: SerialBlock.new(*blocks).command
+          command: SerialBlock.new(*blocks).command,
         })
 
         file = File.new(worker.sh, 'w')
         file.puts LiquidBlock.new("#{PATH}/share/moab.sh", vars).command
         file.close
 
-        worker.update(status: :prepared)
+        worker.update({
+          status:   :prepared,
+          ppn:      vars[:ppn],
+          queue:    vars[:queue],
+          walltime: vars[:walltime],
+        })
         worker
       end
     end
@@ -76,21 +81,47 @@ module Ripe
     def self.sync
       lists = {idle: '-i', blocked: '-b', active:  '-r'}
       lists = lists.map do |status, op|
-        value = `showq -u $(whoami) #{op} | grep $(whoami) | cut -f1 -d' '`
-        {status => value.split("\n")}
+        showq = `showq -u $(whoami) #{op} | grep $(whoami)`.split("\n")
+        showq.map do |job|
+          {
+            moab_id:   job[/^([0-9]+) /, 1],
+            remaining: job[/  ([0-9]{1,2}(\:[0-9]{2})+)  /, 1],
+            status:    status,
+          }
+        end
       end
 
-      lists.inject(&:merge).each do |status, moab_ids|
-        # Update status
-        moab_ids.each do |moab_id|
-          worker = Worker.find_by(moab_id: moab_id)
-          worker.update(status: status) if worker && worker.status != 'cancelled'
-        end
+      # Update status
+      lists = lists.inject(&:+).each do |job|
+        moab_id   = job[:moab_id]
+        remaining = job[:remaining]
+        status    = job[:status]
+        worker    = Worker.find_by(moab_id: moab_id)
 
-        # Mark workers that were previously in active, blocked or idle as completed
-        # if they cannot be found anymore.
-        Worker.where(status: status).each do |worker|
-          worker.update(status: :completed) unless moab_ids.include? worker.moab_id
+        if worker
+          worker.update(remaining: remaining)
+          if worker.status != 'cancelled'
+            checkjob = `checkjob #{moab_id}`
+            worker.update({
+              host:      checkjob[/Allocated Nodes:\n\[(.*):[0-9]+\]\n/, 1],
+              status:    status,
+            })
+          end
+        end
+      end
+
+      # Mark workers that were previously in active, blocked or idle as completed
+      # if they cannot be found anymore.
+      jobs = lists.map { |job| job[:moab_id] }
+      Worker.where('status in (:statuses)',
+                   :statuses => ['active', 'idle', 'blocked']).each do |worker|
+        if jobs.include? worker.moab_id
+          jobs.delete(worker.moab_id)
+        else
+          worker.update({
+            remaining: '0',
+            status:    :completed,
+          })
         end
       end
     end

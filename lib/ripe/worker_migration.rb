@@ -5,9 +5,14 @@ module Ripe
   class WorkerMigration < ActiveRecord::Migration
     def self.up
       create_table :workers do |t|
-        t.string :handle
-        t.string :status, default: :unprepared
-        t.string :moab_id
+        t.string  :handle
+        t.string  :host
+        t.string  :moab_id
+        t.integer :ppn
+        t.string  :queue
+        t.string  :remaining
+        t.string  :status, default: :unprepared
+        t.string  :walltime
       end
     end
 
