@@ -85,7 +85,7 @@ module Ripe
         showq.map do |job|
           {
             moab_id:   job[/^([0-9]+) /, 1],
-            remaining: job[/  ([0-9]{1,2}(\:[0-9]{2})+)  /, 1],
+            time:      job[/  ([0-9]{1,2}(\:[0-9]{2})+)  /, 1],
             status:    status,
           }
         end
@@ -94,13 +94,13 @@ module Ripe
       # Update status
       lists = lists.inject(&:+).each do |job|
         moab_id   = job[:moab_id]
-        remaining = job[:remaining]
+        time      = job[:time]
         status    = job[:status]
         worker    = Worker.find_by(moab_id: moab_id)
 
         if worker
-          worker.update(remaining: remaining)
-          if worker.status != 'cancelled'
+          worker.update(time: time)
+          unless ['cancelled', status].include? worker.status
             checkjob = `checkjob #{moab_id}`
             worker.update({
               host:      checkjob[/Allocated Nodes:\n\[(.*):[0-9]+\]\n/, 1],
@@ -117,10 +117,19 @@ module Ripe
                    :statuses => ['active', 'idle', 'blocked']).each do |worker|
         if jobs.include? worker.moab_id
           jobs.delete(worker.moab_id)
-        else
+        elsif (worker.status != 'cancelled')
+          if File.exists? worker.stdout
+            stdout = File.new(worker.stdout).readlines.join 
+          else
+            stdout = ""
+          end
           worker.update({
-            remaining: '0',
-            status:    :completed,
+            cpu_used:    stdout[/Resources:[ \t]*cput=([0-9]{1,2}(\:[0-9]{2})+),/, 1],
+            exit_code:   stdout[/Exit code:[ \t]*(.*)$/, 1],
+            host:        stdout[/Nodes:[ \t]*(.*)$/, 1],
+            memory_used: stdout[/Resources:.*,mem=([0-9]*[a-zA-Z]*),/, 1],
+            time:        stdout[/Resources:.*,walltime=([0-9]{1,2}(\:[0-9]{2})+)$/, 1],
+            status:      :completed,
           })
         end
       end
