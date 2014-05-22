@@ -53,28 +53,45 @@ module Ripe
           end
 
           block = callback.call(sample)
-          post_var_assign.call(block)
+          if block != nil
+            puts "Preparing #{sample} (worker #{worker.id})"
+            post_var_assign.call(block)
+          else
+            puts "Nothing to do for sample #{sample} (worker #{worker.id})"
+            task.destroy
+          end
+
           block
         end
 
-        vars = vars.merge({
-          name:    worker.id,
-          stdout:  worker.stdout,
-          stderr:  worker.stderr,
-          command: SerialBlock.new(*blocks).command,
-        })
+        blocks = blocks.reject { |block| block == nil }
 
-        file = File.new(worker.sh, 'w')
-        file.puts LiquidBlock.new("#{PATH}/share/moab.sh", vars).command
-        file.close
+        if blocks.empty?
+          puts "Nothing to do for worker #{worker.id}"
+          worker.destroy
+          nil
+        else
+          puts "Preparing worker #{worker.id}"
 
-        worker.update({
-          status:   :prepared,
-          ppn:      vars[:ppn],
-          queue:    vars[:queue],
-          walltime: vars[:walltime],
-        })
-        worker
+          vars = vars.merge({
+            name:    worker.id,
+            stdout:  worker.stdout,
+            stderr:  worker.stderr,
+            command: SerialBlock.new(*blocks).command,
+          })
+
+          file = File.new(worker.sh, 'w')
+          file.puts LiquidBlock.new("#{PATH}/share/moab.sh", vars).command
+          file.close
+
+          worker.update({
+            status:   :prepared,
+            ppn:      vars[:ppn],
+            queue:    vars[:queue],
+            walltime: vars[:walltime],
+          })
+          worker
+        end
       end
     end
 
