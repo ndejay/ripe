@@ -12,5 +12,9 @@ module Ripe
     def topology
       [@id] + @blocks.map(&:topology)
     end
+
+    def targets_exist?
+      @blocks.map(&:targets_exist?).inject(:&)
+    end
   end
 end

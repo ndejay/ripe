@@ -40,20 +40,20 @@ module Ripe
 
         blocks = worker_samples.map do |sample|
           task = worker.tasks.create(sample: sample)
+          block = callback.call(sample).prune(false)
 
-          ## Preorder traversal of blocks -- assign incremental numbers starting from
-          ## 1 to each node as it is being traversed.
-          post_var_assign = lambda do |subblock|
-            if subblock.blocks.length == 0
-              subtask = task.subtasks.create(block: subblock.id)
-              subblock.vars.merge!(log: subtask.log)
-            else
-              subblock.blocks.each(&post_var_assign)
-            end
-          end
-
-          block = callback.call(sample)
           if block != nil
+            # Preorder traversal of blocks -- assign incremental numbers starting from
+            # 1 to each node as it is being traversed.
+            post_var_assign = lambda do |subblock|
+              if subblock.blocks.length == 0
+                subtask = task.subtasks.create(block: subblock.id)
+                subblock.vars.merge!(log: subtask.log)
+              else
+                subblock.blocks.each(&post_var_assign)
+              end
+            end
+
             puts "Preparing #{sample} (worker #{worker.id})"
             post_var_assign.call(block)
           else

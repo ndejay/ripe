@@ -10,6 +10,10 @@ module Ripe
       @id, @blocks, @vars = id, blocks, vars
     end
 
+    def prune(protect)
+      self
+    end
+
     def |(block)
       ParallelBlock.new(self, block)
     end
