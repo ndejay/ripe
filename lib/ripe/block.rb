@@ -10,7 +10,7 @@ module Ripe
       @id, @blocks, @vars = id, blocks, vars
     end
 
-    def prune(protect)
+    def prune(protect, depend)
       self
     end
 

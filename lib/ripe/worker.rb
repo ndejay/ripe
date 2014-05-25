@@ -33,14 +33,20 @@ module Ripe
     end
 
     def self.prepare(samples, callback, vars = {})
-      vars = {wd: Dir.pwd}.merge(vars)
+      vars = {
+        wd:   Dir.pwd,
+        mode: :patch,
+      }.merge(vars)
+
+      return if ![:patch, :force, :depend].include? vars[:mode].to_sym
 
       samples.each_slice(vars[:worker_num]).map do |worker_samples|
         worker = Worker.create(handle: vars[:handle])
 
         blocks = worker_samples.map do |sample|
           task = worker.tasks.create(sample: sample)
-          block = callback.call(sample).prune(false)
+          block = callback.call(sample).prune(vars[:mode].to_sym == :force,
+                                              vars[:mode].to_sym == :depend)
 
           if block != nil
             # Preorder traversal of blocks -- assign incremental numbers starting from

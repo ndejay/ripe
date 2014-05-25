@@ -9,6 +9,20 @@ module Ripe
       super(id, blocks, {})
     end
 
+    def prune(protect, depend)
+      return self if protect
+
+      @blocks = @blocks.map { |block| block.prune(protect, depend) }.compact
+      case @blocks.length
+      when 0
+        nil
+      when 1
+        @blocks.first
+      else
+        self
+      end
+    end
+
     def topology
       [@id] + @blocks.map(&:topology)
     end

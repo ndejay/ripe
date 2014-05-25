@@ -19,7 +19,7 @@ module Ripe
       template.render(vars)
     end
 
-    def prune(protect)
+    def prune(protect, depend)
       targets_exist? && !protect ? nil : self
     end
 

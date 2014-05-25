@@ -10,12 +10,15 @@ module Ripe
       @blocks.map { |block| "(\n%s\n)" % block.command }.join(' ; ')
     end
 
-    def prune(protect)
+    alias :super_prune :prune
+
+    def prune(protect, depend)
+      return super_prune(protect, depend) if !depend
       return self if protect
 
       @blocks = @blocks.map do |block|
-        new_protect = true if !block.targets_exist?
-        new_block = block.prune(protect)
+        new_protect = !block.targets_exist?
+        new_block = block.prune(protect, depend)
         protect = new_protect
         new_block
       end
