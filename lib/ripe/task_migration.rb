@@ -6,8 +6,8 @@ module Ripe
     def self.up
       create_table :tasks do |t|
         t.belongs_to :worker
-        t.string :sample
-        # a block, its vars
+        t.string     :sample
+        t.string     :block
       end
     end
 

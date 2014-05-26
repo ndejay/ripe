@@ -4,8 +4,6 @@ require_relative 'block'
 require_relative 'worker'
 require_relative 'worker_migration'
 require_relative 'liquid_block'
-require_relative 'subtask'
-require_relative 'subtask_migration'
 require_relative 'task'
 require_relative 'task_migration'
 
@@ -35,7 +33,6 @@ module Ripe
         attach
         WorkerMigration.up
         TaskMigration.up
-        SubtaskMigration.up
       rescue
         destroy
       end

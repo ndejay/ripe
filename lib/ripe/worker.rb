@@ -1,12 +1,10 @@
 require 'active_record'
 require 'fileutils'
-require_relative 'subtask'
 require_relative 'task'
 
 module Ripe
   class Worker < ActiveRecord::Base
     has_many :tasks, dependent: :destroy
-    has_many :subtasks, through: :tasks
 
     def dir
       ".ripe/#{self.id}"
@@ -25,11 +23,11 @@ module Ripe
     end
 
     after_create do
-      FileUtils.mkdir_p dir # if !Dir.exists? dir
+      FileUtils.mkdir_p dir if !Dir.exists? dir
     end
 
     before_destroy do
-      FileUtils.rm_r dir # if Dir.exists? dir
+      FileUtils.rm_r dir if Dir.exists? dir
     end
 
     def self.prepare(samples, callback, vars = {})
@@ -58,14 +56,15 @@ module Ripe
         worker = Worker.create(handle: vars[:handle])
 
         blocks = worker_samples.map do |sample, block|
-          task = worker.tasks.create(sample: sample)
-
           # Preorder traversal of blocks -- assign incremental numbers starting from
           # 1 to each node as it is being traversed.
           post_var_assign = lambda do |subblock|
             if subblock.blocks.length == 0
-              subtask = task.subtasks.create(block: subblock.id)
-              subblock.vars.merge!(log: subtask.log)
+              task = worker.tasks.create({
+                sample: sample,
+                block:  subblock.id,
+              })
+              subblock.vars.merge!(log: task.log)
             else
               subblock.blocks.each(&post_var_assign)
             end
