@@ -34,70 +34,65 @@ module Ripe
 
     def self.prepare(samples, callback, vars = {})
       vars = {
-        wd:   Dir.pwd,
-        mode: :patch,
+        wd:        Dir.pwd,
+        mode:      :patch,
+        group_num: 1,
       }.merge(vars)
 
       return if ![:patch, :force, :depend].include? vars[:mode].to_sym
 
-      samples.each_slice(vars[:worker_num]).map do |worker_samples|
+      samples = samples.map do |sample|
+        block = callback.call(sample).prune(vars[:mode].to_sym == :force,
+                                            vars[:mode].to_sym == :depend)
+        if block != nil
+          puts "Preparing sample #{sample}"
+          [sample, block]
+        else
+          puts "Nothing to do for sample #{sample}"
+          nil
+        end
+      end
+      samples = samples.compact
+
+      samples.each_slice(vars[:group_num]).map do |worker_samples|
         worker = Worker.create(handle: vars[:handle])
 
-        blocks = worker_samples.map do |sample|
+        blocks = worker_samples.map do |sample, block|
           task = worker.tasks.create(sample: sample)
-          block = callback.call(sample).prune(vars[:mode].to_sym == :force,
-                                              vars[:mode].to_sym == :depend)
 
-          if block != nil
-            # Preorder traversal of blocks -- assign incremental numbers starting from
-            # 1 to each node as it is being traversed.
-            post_var_assign = lambda do |subblock|
-              if subblock.blocks.length == 0
-                subtask = task.subtasks.create(block: subblock.id)
-                subblock.vars.merge!(log: subtask.log)
-              else
-                subblock.blocks.each(&post_var_assign)
-              end
+          # Preorder traversal of blocks -- assign incremental numbers starting from
+          # 1 to each node as it is being traversed.
+          post_var_assign = lambda do |subblock|
+            if subblock.blocks.length == 0
+              subtask = task.subtasks.create(block: subblock.id)
+              subblock.vars.merge!(log: subtask.log)
+            else
+              subblock.blocks.each(&post_var_assign)
             end
-
-            puts "Preparing #{sample} (worker #{worker.id})"
-            post_var_assign.call(block)
-          else
-            puts "Nothing to do for sample #{sample} (worker #{worker.id})"
-            task.destroy
           end
 
+          post_var_assign.call(block)
           block
         end
 
-        blocks = blocks.reject { |block| block == nil }
+        vars = vars.merge({
+          name:    worker.id,
+          stdout:  worker.stdout,
+          stderr:  worker.stderr,
+          command: SerialBlock.new(*blocks).command,
+        })
 
-        if blocks.empty?
-          puts "Nothing to do for worker #{worker.id}"
-          worker.destroy
-          nil
-        else
-          puts "Preparing worker #{worker.id}"
+        file = File.new(worker.sh, 'w')
+        file.puts LiquidBlock.new("#{PATH}/share/moab.sh", vars).command
+        file.close
 
-          vars = vars.merge({
-            name:    worker.id,
-            stdout:  worker.stdout,
-            stderr:  worker.stderr,
-            command: SerialBlock.new(*blocks).command,
-          })
-
-          file = File.new(worker.sh, 'w')
-          file.puts LiquidBlock.new("#{PATH}/share/moab.sh", vars).command
-          file.close
-
-          worker.update({
-            status:   :prepared,
-            ppn:      vars[:ppn],
-            queue:    vars[:queue],
-            walltime: vars[:walltime],
-          })
-          worker
-        end
+        worker.update({
+          status:   :prepared,
+          ppn:      vars[:ppn],
+          queue:    vars[:queue],
+          walltime: vars[:walltime],
+        })
+        worker
       end
     end
 
