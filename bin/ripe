@@ -1,3 +1,29 @@
-#!/usr/bin/env bash
+#!/usr/bin/env ruby
 
-irb -r $(ruby -e "require 'ripe'; puts Ripe::PATH")/share/irb.rb
+require 'ripe'
+require 'thor'
+
+include Ripe
+
+class CLI < Thor
+  desc 'console', 'Enter ripe console'
+  def console
+    require 'irb'
+    require 'irbtools'
+
+    ARGV.clear # This is necessary because otherwise all arguments
+               # get sent to IRB
+
+    $ripe = Controller.new
+    $ripe.attach
+
+    IRB.start "ripe #{Ripe::VERSION}"
+  end
+
+  desc 'version', 'Retrieve ripe version'
+  def version
+    puts "ripe version #{Ripe::VERSION}"
+  end
+end
+
+CLI.start(ARGV)
