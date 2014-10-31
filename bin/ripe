@@ -5,6 +5,14 @@ require 'thor'
 
 include Ripe
 
+# Look for workflows and blocks in ./.ripe wherever invoked, then in
+# directories specified in the $RIPELIB environment variable.
+$RIPELIBS = "#{ENV['PWD']}/.ripe:#{ENV['RIPELIB']}".split(/:/)
+
+def Task(handle, vars = {})
+  WorkingBlock.new($RIPELIBS.map{ |path| "#{path}/tasks/#{handle}.sh" }.select{ |path| File.exists? path }.first, vars)
+end
+
 class CLI < Thor
   desc 'console', 'Enter ripe console'
   def console
@@ -18,6 +26,28 @@ class CLI < Thor
     $ripe.attach
 
     IRB.start "ripe #{Ripe::VERSION}"
+  end
+
+  desc 'prepare SAMPLES', 'Prepare jobs from template workflow'
+  option :workflow, :aliases => '-w', :type => :string, :required => true,
+    :desc => 'Workflow to be applied'
+  option :mode, :aliases => '-m', :type => :string, :default => 'patch',
+    :desc => 'Checkpoint restart mode'
+  def prepare(*samples)
+    return if (samples.length == 0)
+
+    additional_vars = {
+      mode: options[:mode].to_sym,
+    }
+
+    # Expect $callback to be a lambda function that takes one argument (sample)
+    # and returns a Block, and $vars to be a dictionary mapping arguments to
+    # values (i.e. resource allocation)
+    require_relative $RIPELIBS.map{ |path| "#{path}/workflows/#{options[:workflow]}.rb" }.select{ |path| File.exists? path }.first
+
+    $ripe = Controller.new
+    $ripe.attach_or_create # Create .ripe if it doesn't exist
+    $ripe.prepare(samples, $callback, $vars.merge(additional_vars))
   end
 
   desc 'version', 'Retrieve ripe version'

@@ -40,7 +40,8 @@ module Ripe
     end
 
     def destroy
-      FileUtils.rm_r(@repository_path) if @has_repository
+      FileUtils.rm("#{@repository_path}/meta.db") if File.exists? "#{@repository_path}/meta.db"
+      FileUtils.rm("#{@repository_path}/workers") if Dir.exists?  "#{@repository_path}/workers"
     end
 
     def prepare(samples, callback, vars = {})

@@ -7,7 +7,7 @@ module Ripe
     has_many :tasks, dependent: :destroy
 
     def dir
-      ".ripe/#{self.id}"
+      ".ripe/workers/#{self.id}"
     end
 
     def sh
