@@ -121,7 +121,7 @@ module Ripe
             checkjob = `checkjob #{moab_id}`
             worker.update({
               host:      checkjob[/Allocated Nodes:\n\[(.*):[0-9]+\]\n/, 1],
-              status:    status,
+              status:    status, # Queued jobs that appear become either idle, blocked or active
             })
           end
         end
@@ -133,7 +133,7 @@ module Ripe
       Worker.where('status in (:statuses)',
                    :statuses => ['active', 'idle', 'blocked']).each do |worker|
         if jobs.include? worker.moab_id
-          jobs.delete(worker.moab_id)
+          jobs.delete(worker.moab_id) # Remove from list
         elsif (worker.status != 'cancelled')
           if File.exists? worker.stdout
             stdout = File.new(worker.stdout).readlines.join 
@@ -158,11 +158,11 @@ module Ripe
     end
 
     def start
-      update(status: :idle, moab_id: `msub '#{self.sh}'`.strip)
+      update(status: :queueing, moab_id: `qsub '#{self.sh}'`.strip.split(/\./).first) # Send to queue first
     end
 
     def cancel!
-      raise "Worker #{id} could not be cancelled: not started" unless ['idle', 'blocked', 'active'].include? self.status
+      raise "Worker #{id} could not be cancelled: not started" unless ['queueing', 'idle', 'blocked', 'active'].include? self.status
       cancel
     end
 
