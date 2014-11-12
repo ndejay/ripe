@@ -6,7 +6,8 @@ module Ripe
 
   class MultiBlock < Block
     def initialize(id, *blocks)
-      super(id, blocks, {})
+      # Ignore nil objects
+      super(id, blocks.compact, {})
     end
 
     def prune(protect, depend)

@@ -32,7 +32,10 @@ module Ripe
 
     def targets_exist?
       statuses = @vars.select { |key, _| !key[/^output_/].nil? }.values.flatten
-      statuses.map { |target| File.exists? target }.inject(:&)
+      targets_exist = statuses.map { |target| File.exists? target }.inject(:&)
+
+      # If there are no targets at all, then assume that all targets exist
+      targets_exist == nil ? true : targets_exist
     end
   end
 end
