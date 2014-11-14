@@ -40,8 +40,8 @@ module Ripe
       return if ![:patch, :force, :depend].include? vars[:mode].to_sym
 
       samples = samples.map do |sample|
-        block = callback.call(sample).prune(vars[:mode].to_sym == :force,
-                                            vars[:mode].to_sym == :depend)
+        block = callback.call(sample, vars).prune(vars[:mode].to_sym == :force,
+                                                  vars[:mode].to_sym == :depend)
         if block != nil
           puts "Preparing sample #{sample}"
           [sample, block]

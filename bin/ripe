@@ -31,19 +31,22 @@ class CLI < Thor
   desc 'prepare SAMPLES', 'Prepare jobs from template workflow'
   option :workflow, :aliases => '-w', :type => :string, :required => true,
     :desc => 'Workflow to be applied'
-  option :mode, :aliases => '-m', :type => :string, :default => 'patch',
-    :desc => 'Checkpoint restart mode'
+  option :options, :aliases => '-o', :type => :string, :required => false,
+    :desc => 'Options', :default => ''
   def prepare(*samples)
     return if (samples.length == 0)
 
-    additional_vars = {
-      mode: options[:mode].to_sym,
-    }
+    additional_vars = options[:options].split(/,/).map do |pair|
+      key, value = pair.split(/=/)
+      { key.to_sym => value }
+    end
+    additional_vars = additional_vars.inject(&:merge) || {}
 
     # Expect $callback to be a lambda function that takes one argument (sample)
     # and returns a Block, and $vars to be a dictionary mapping arguments to
     # values (i.e. resource allocation)
-    require_relative $RIPELIBS.map{ |path| "#{path}/workflows/#{options[:workflow]}.rb" }.select{ |path| File.exists? path }.first
+    workflows = $RIPELIBS.map{ |path| "#{path}/workflows/#{options[:workflow]}.rb" }
+    require_relative workflows.select{ |path| File.exists? path }.first
 
     $ripe = Controller.new
     $ripe.attach_or_create # Create .ripe if it doesn't exist
