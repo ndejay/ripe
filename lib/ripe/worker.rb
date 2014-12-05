@@ -52,7 +52,7 @@ module Ripe
       end
       samples = samples.compact
 
-      samples.each_slice(vars[:group_num]).map do |worker_samples|
+      samples.each_slice(vars[:group_num].to_i).map do |worker_samples|
         worker = Worker.create(handle: vars[:handle])
 
         blocks = worker_samples.map do |sample, block|
