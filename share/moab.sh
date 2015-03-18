@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 #PBS -N {{ name }}
 #PBS -A {{ project_name }}
 #PBS -q {{ queue }}
