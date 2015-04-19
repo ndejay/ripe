@@ -2,6 +2,7 @@ require 'active_record'
 require 'fileutils'
 require_relative 'block'
 require_relative 'worker'
+require_relative 'worker_controller'
 require_relative 'worker_migration'
 require_relative 'working_block'
 require_relative 'liquid_block'
@@ -45,7 +46,7 @@ module Ripe
     end
 
     def prepare(samples, callback, vars = {})
-      Worker.prepare(samples, callback, vars)
+      WorkerController.instance.prepare(samples, callback, vars)
     end
   end
 end
