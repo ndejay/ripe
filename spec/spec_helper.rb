@@ -3,4 +3,4 @@ if !ENV['CODECLIMATE_REPO_TOKEN'].nil?
   CodeClimate::TestReporter.start
 end
 
-require 'ripe'
+require_relative '../lib/ripe'
