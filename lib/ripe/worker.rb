@@ -30,6 +30,10 @@ module Ripe
       FileUtils.rm_r dir if Dir.exists? dir
     end
 
+    def self.sync
+      WorkerController.instance.sync
+    end
+
     def start!
       raise "Worker #{id} could not be started: not prepared" unless self.status == 'prepared'
       start
