@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rspec", "~> 3.2"
   spec.add_development_dependency "rspec-nc", "~> 0.2"
   spec.add_development_dependency "guard-rspec", "~> 4.5"
+  spec.add_development_dependency "rdoc", "~> 4.2"
 
   spec.add_runtime_dependency "activerecord", "~> 4.2"
   spec.add_runtime_dependency "fileutils", "~> 0.7"
