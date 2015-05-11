@@ -13,5 +13,9 @@ module Ripe
     def log
       "#{self.dir}/#{self.id}.log"
     end
+
+    def sh
+      "#{self.dir}/#{self.id}.sh"
+    end
   end
 end
