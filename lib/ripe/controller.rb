@@ -5,15 +5,19 @@ require_relative 'worker'
 require_relative 'worker_controller'
 require_relative 'worker_migration'
 require_relative 'working_block'
+require_relative 'library'
 require_relative 'liquid_block'
 require_relative 'task'
 require_relative 'task_migration'
 
 module Ripe
   class Controller
+    attr_reader :library
+
     def initialize
       @repository_path = '.ripe'
-      @has_repository = Dir.exists? @repository_path
+      @has_repository = File.exists? "#{@repository_path}/meta.db"
+      @library = Library.new
     end
 
     def attach
