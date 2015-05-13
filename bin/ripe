@@ -1,10 +1,11 @@
 #!/usr/bin/env ruby
 
 require_relative '../lib/ripe'
-require_relative '../lib/ripe/workflow_dsl.rb'
+require_relative '../lib/ripe/dsl.rb'
 require 'thor'
 
 include Ripe
+include Ripe::DSL
 
 class CLI < Thor
   desc 'console', 'Enter ripe console'
@@ -36,13 +37,15 @@ class CLI < Thor
     additional_vars = additional_vars.inject(&:merge) || {}
 
     $ripe = Controller.new
+
     filename = $ripe.library.find_workflow(options[:workflow])
-    require_relative filename # Imports +$worker+ from the workflow component
+    abort "Could not find workflow #{@handle}." if filename == nil
+    require_relative filename # Imports +$workflow+ from the workflow component
 
     $ripe.attach_or_create # Create .ripe if it doesn't exist
     $ripe.prepare(samples,
                   $workflow.callback,
-                  $workflow.vars.merge(additional_vars))
+                  $workflow.params.merge(additional_vars))
   end
 
   desc 'version', 'Retrieve ripe version'

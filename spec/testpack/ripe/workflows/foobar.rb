@@ -5,7 +5,7 @@ workflow 'foobar' do
   param :queue,         'queue'
   param :walltime,      '12:00:00'
 
-  describe do |sample, vars|
+  describe do |sample, params|
     foo = task 'foo' do
       param :input_foo,   "#{sample}/input_foo"
       param :foo_message, 'FOO'
