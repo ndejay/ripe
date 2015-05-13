@@ -4,3 +4,4 @@ if !ENV['CODECLIMATE_REPO_TOKEN'].nil?
 end
 
 require_relative '../lib/ripe'
+require_relative 'testpack'
