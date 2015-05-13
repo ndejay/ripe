@@ -9,15 +9,19 @@ $vars = {
 }
 
 $callback = lambda do |sample, vars|
-  foo = Task('foo', {
-    input_foo:   "#{sample}/input_foo",
-    foo_message: 'FOO',
-    output_foo:  "#{sample}/output_foo",
-  })
-  bar = Task('bar', {
-    input_bar:   "#{sample}/input_bar",
-    bar_message: 'BAR',
-    output_bar:  "#{sample}/output_bar",
-  })
+
+  foo = task 'foo' do
+    param :input_foo,   "#{sample}/input_foo"
+    param :foo_message, 'FOO'
+    param :output_foo,  "#{sample}/output_foo"
+  end
+
+  bar = task 'bar' do
+    param :input_bar,   "#{sample}/input_bar"
+    param :bar_message, 'BAR'
+    param :output_bar,  "#{sample}/output_bar"
+  end
+
   foo + bar
+
 end

@@ -1,16 +1,10 @@
 #!/usr/bin/env ruby
 
 require_relative '../lib/ripe'
+require_relative '../lib/ripe/task_dsl.rb'
 require 'thor'
 
 include Ripe
-
-def Task(handle, vars = {})
-  $ripe = Controller.new
-  filename = $ripe.library.find_task(handle)
-  abort "Could not find task #{handle}." if filename == nil
-  WorkingBlock.new(filename, vars)
-end
 
 class CLI < Thor
   desc 'console', 'Enter ripe console'
