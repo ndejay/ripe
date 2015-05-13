@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require_relative '../lib/ripe'
-require_relative '../lib/ripe/task_dsl.rb'
+require_relative '../lib/ripe/workflow_dsl.rb'
 require 'thor'
 
 include Ripe
@@ -36,16 +36,13 @@ class CLI < Thor
     additional_vars = additional_vars.inject(&:merge) || {}
 
     $ripe = Controller.new
-
-    # Expect $callback to be a lambda function that takes one argument (sample)
-    # and returns a Block, and $vars to be a dictionary mapping arguments to
-    # values (i.e. resource allocation)
     filename = $ripe.library.find_workflow(options[:workflow])
-    abort "Could not find workflow #{options[:workflow]}." if filename == nil
-    require_relative filename
+    require_relative filename # Imports +$worker+ from the workflow component
 
     $ripe.attach_or_create # Create .ripe if it doesn't exist
-    $ripe.prepare(samples, $callback, $vars.merge(additional_vars))
+    $ripe.prepare(samples,
+                  $workflow.callback,
+                  $workflow.vars.merge(additional_vars))
   end
 
   desc 'version', 'Retrieve ripe version'

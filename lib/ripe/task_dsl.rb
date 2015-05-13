@@ -1,5 +1,4 @@
 require_relative 'controller'
-require_relative 'working_block'
 
 module Ripe
   class TaskDSL
@@ -22,13 +21,4 @@ module Ripe
       @vars.merge!({ key => value })
     end
   end
-end
-
-def task(handle, &block)
-  filename = Controller.new.library.find_task(handle)
-  vars = TaskDSL.new(handle, &block).vars
-
-  abort "Could not find task #{handle}." if filename == nil
-
-  WorkingBlock.new(filename, vars)
 end
