@@ -3,7 +3,8 @@ cache: bundler
 rvm:
   - 2.1.5
 script: bundle exec rake spec
+branches:
+  only:
+    - develop
 notifications:
   email: false
-  slack:
-    secure: "RlmKttTKbJlU1xu6blqP3HWwzH4KpvvdatvxkFWB1t3mBE3vRWC8FgiNpxYFs/6+TdctGOWRGW/i6CUaXbPwn3nyrlN+yxHmqNrJFg8dS2jQoM1/xBUZXdDhABMvw8qWzG26RSfGlvvO0P78rILawil+5/2z9e1XcUVmf0RL+gc="
