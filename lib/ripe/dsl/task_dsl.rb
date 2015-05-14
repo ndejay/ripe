@@ -26,7 +26,7 @@ module Ripe
     #
     # @see Ripe::DSL::TaskDSL
     # @see Ripe::DSL::WorkflowDSL
-    # @see Ripe::DSL::workflow
+    # @see Ripe::DSL::task
     #
     # @param handle [String] the name of the task
     # @param block [Proc] executes block in the context of +TaskDSL+
