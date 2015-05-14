@@ -16,7 +16,7 @@ class CLI < Thor
     ARGV.clear # This is necessary because otherwise all arguments
                # get sent to IRB
 
-    $ripe = Controller.new
+    $ripe = Repo.new
     $ripe.attach
 
     IRB.start "ripe #{Ripe::VERSION}"
@@ -36,7 +36,7 @@ class CLI < Thor
     end
     additional_vars = additional_vars.inject(&:merge) || {}
 
-    $ripe = Controller.new
+    $ripe = Repo.new
 
     filename = $ripe.library.find_workflow(options[:workflow])
     abort "Could not find workflow #{@handle}." if filename == nil

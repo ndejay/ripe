@@ -17,7 +17,7 @@ module Ripe
       # Prepends the working directory to the list of paths so that the
       # working directory is always looked in first.
 
-      @paths = "#{ENV['PWD']}/.ripe:#{ENV['RIPELIB']}".split(/:/)
+      @paths = "#{Dir.pwd}/#{Repo::REPOSITORY_PATH}:#{ENV['RIPELIB']}".split(/:/)
     end
 
     ##

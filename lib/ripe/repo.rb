@@ -11,19 +11,23 @@ require_relative 'task'
 require_relative 'task_migration'
 
 module Ripe
-  class Controller
-    attr_reader :library
+  class Repo
+    REPOSITORY_PATH = '.ripe'
+    DATABASE_PATH   = "#{REPOSITORY_PATH}/meta.db"
+    WORKERS_PATH    = "#{REPOSITORY_PATH}/workers"
+
+    attr_reader :library, :controller
 
     def initialize
-      @repository_path = '.ripe'
-      @has_repository = File.exists? "#{@repository_path}/meta.db"
-      @library = Library.new
+      @has_repository = File.exists? REPOSITORY_PATH
+      @library        = Library.new
+      @controller     = WorkerController.instance
     end
 
     def attach
       ActiveRecord::Base.establish_connection({
         adapter:  'sqlite3',
-        database: "#{@repository_path}/meta.db"
+        database: DATABASE_PATH,
       })
     end
 
@@ -32,7 +36,7 @@ module Ripe
     end
 
     def create
-      FileUtils.mkdir_p(@repository_path)
+      FileUtils.mkdir_p(REPOSITORY_PATH)
       @has_repository = true
 
       begin
@@ -45,12 +49,12 @@ module Ripe
     end
 
     def destroy
-      FileUtils.rm("#{@repository_path}/meta.db") if File.exists? "#{@repository_path}/meta.db"
-      FileUtils.rm("#{@repository_path}/workers") if Dir.exists?  "#{@repository_path}/workers"
+      FileUtils.rm(DATABASE_PATH) if File.exists? DATABASE_PATH
+      FileUtils.rm(WORKERS_PATH)  if Dir.exists?  WORKERS_PATH
     end
 
     def prepare(samples, callback, vars = {})
-      WorkerController.instance.prepare(samples, callback, vars)
+      @controller.prepare(samples, callback, vars)
     end
   end
 end

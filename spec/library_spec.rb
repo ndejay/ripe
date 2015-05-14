@@ -8,7 +8,7 @@ describe Ripe::Library do
     end
 
     it 'looks in the working directory' do
-      expect(@library.paths).to eql ["#{ENV['PWD']}/.ripe"]
+      expect(@library.paths).to eql ["#{Dir.pwd}/#{Ripe::Repo::REPOSITORY_PATH}"]
     end
 
     it 'cannot resolve components of the test library' do
@@ -32,7 +32,7 @@ describe Ripe::Library do
     it 'looks in the working directory first' do
       # It looks in the working directory, and then in the directory
       # specified in RIPELIB.
-      expect(@library.paths[0]).to eql "#{ENV['PWD']}/.ripe"
+      expect(@library.paths[0]).to eql "#{Dir.pwd}/#{Ripe::Repo::REPOSITORY_PATH}"
       expect(@library.paths[1]).to eql @test.path
     end
 

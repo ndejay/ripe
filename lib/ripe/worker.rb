@@ -7,7 +7,7 @@ module Ripe
     has_many :tasks, dependent: :destroy
 
     def dir
-      ".ripe/workers/#{self.id}"
+      "#{Repo::REPOSITORY_PATH}/workers/#{self.id}"
     end
 
     def sh
@@ -28,10 +28,6 @@ module Ripe
 
     before_destroy do
       FileUtils.rm_r dir if Dir.exists? dir
-    end
-
-    def self.sync
-      WorkerController.instance.sync
     end
 
     def start!

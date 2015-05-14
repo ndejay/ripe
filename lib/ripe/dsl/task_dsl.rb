@@ -33,7 +33,7 @@ module Ripe
     # @return [WorkingBlock, nil]
 
     def task(handle, &block)
-      filename = Controller.new.library.find_task(handle)
+      filename = Repo.new.library.find_task(handle)
       abort "Could not find task #{handle}." if filename == nil
 
       params = TaskDSL.new(handle, &block).params
