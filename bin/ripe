@@ -43,9 +43,9 @@ class CLI < Thor
     require_relative filename # Imports +$workflow+ from the workflow component
 
     $ripe.attach_or_create # Create .ripe if it doesn't exist
-    $ripe.prepare(samples,
-                  $workflow.callback,
-                  $workflow.params.merge(additional_vars))
+    $ripe.controller.prepare(samples,
+                             $workflow.callback,
+                             $workflow.params.merge(additional_vars))
   end
 
   desc 'version', 'Retrieve ripe version'

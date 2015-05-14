@@ -1,6 +1,7 @@
 require 'active_record'
 require 'fileutils'
 require_relative 'task'
+require_relative 'worker_controller'
 
 module Ripe
   class Worker < ActiveRecord::Base
@@ -30,23 +31,14 @@ module Ripe
       FileUtils.rm_r dir if Dir.exists? dir
     end
 
-    def start!
-      raise "Worker #{id} could not be started: not prepared" unless self.status == 'prepared'
-      start
-    end
-
     def start
-      update(status: :queueing, moab_id: `qsub '#{self.sh}'`.strip.split(/\./).first) # Send to queue first
-    end
-
-    def cancel!
-      raise "Worker #{id} could not be cancelled: not started" unless ['queueing', 'idle', 'blocked', 'active'].include? self.status
-      cancel
+      raise "Worker #{id} could not be started: not prepared" unless self.status == 'prepared'
+      WorkerController.instance.start(self)
     end
 
     def cancel
-      `canceljob #{self.moab_id}`
-      update(status: :cancelled)
+      raise "Worker #{id} could not be cancelled: not started" unless ['queueing', 'idle', 'blocked', 'active'].include? self.status
+      WorkerController.instance.cancel(self)
     end
   end
 end

@@ -87,10 +87,6 @@ module Ripe
       FileUtils.rm(WORKERS_PATH)  if Dir.exists?  WORKERS_PATH
     end
 
-    def prepare(samples, callback, vars = {})
-      @controller.prepare(samples, callback, vars)
-    end
-
   end
 
 end

@@ -2,7 +2,9 @@ require 'singleton'
 require_relative 'worker'
 
 module Ripe
+
   class WorkerController
+
     include Singleton
 
     def prepare(samples, callback, vars = {})
@@ -78,6 +80,17 @@ module Ripe
       end
     end
 
+    def start(worker)
+      worker.update(status: :queueing,
+                    moab_id: `qsub '#{worker.sh}'`.strip.split(/\./).first)
+    end
+
+
+    def cancel(worker)
+      `canceljob #{worker.moab_id}`
+      worker.update(status: :cancelled)
+    end
+
     def sync
       lists = {idle: '-i', blocked: '-b', active:  '-r'}
       lists = lists.map do |status, op|
@@ -134,5 +147,7 @@ module Ripe
         end
       end
     end
+
   end
+
 end
