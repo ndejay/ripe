@@ -17,13 +17,13 @@ module Ripe
   # +git+ repository and is the starting point of the package.  It
   # instantiates:
   #
-  #   * a library containing information as to where to retrieve ripe
-  #     components such as tasks and workflows;
-  #   * a database that contains all worker metadata; and
-  #   * a controller that communicates the database with the compute cluster
-  #     interface.
+  # * a library containing information as to where to retrieve ripe
+  #   components such as tasks and workflows;
+  # * a database that contains all worker metadata; and
+  # * a controller that communicates the database with the compute cluster
+  #   interface.
   #
-  # @see Ripe::Controller
+  # @see Ripe::WorkerController
   # @see Ripe::Library
 
   class Repo
@@ -35,7 +35,7 @@ module Ripe
     attr_reader :library, :controller
 
     ##
-    # Initializes a repository
+    # Initialize a repository
 
     def initialize
       @has_repository = File.exists? REPOSITORY_PATH
@@ -44,7 +44,7 @@ module Ripe
     end
 
     ##
-    # Attaches to an existing database
+    # Attach to an existing database
 
     def attach
       ActiveRecord::Base.establish_connection({
@@ -54,14 +54,14 @@ module Ripe
     end
 
     ##
-    # Attaches to an existing database, and creates one if none is found.
+    # Attach to an existing database, and creates one if none is found.
 
     def attach_or_create
       @has_repository ? attach : create
     end
 
     ##
-    # Creates a database
+    # Create a database
 
     def create
       FileUtils.mkdir_p(REPOSITORY_PATH)
@@ -79,7 +79,7 @@ module Ripe
     end
 
     ##
-    # Destroys the ripe repository, including the database and the worker
+    # Destroy the ripe repository, including the database and the worker
     # output.
 
     def destroy

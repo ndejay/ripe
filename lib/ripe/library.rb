@@ -10,7 +10,7 @@ module Ripe
     attr_reader :paths
 
     ##
-    # Creates a new library spanning all paths in the +RIPELIB+ environment
+    # Create a new library spanning all paths in the +RIPELIB+ environment
     # variable.
 
     def initialize
@@ -25,7 +25,9 @@ module Ripe
     # +handle+.  When there is more than one match, give precendence to the
     # component whose path is declared first.
     #
-    # Return the full path of the component if found, and +nil+ otherwise.
+    # @param handle [String] Task to search for
+    # @return [String, nil] Return the full path of the component if found,
+    #   and +nil+ otherwise.
 
     def find_task(handle)
       search = @paths.map do |path|
@@ -41,7 +43,9 @@ module Ripe
     # +handle+.  When there is more than one match, give precendence to
     # component whose path is declared first.
     #
-    # Return the full path of the component if found, and +nil+ otherwise.
+    # @param handle [String] Workflow to search for
+    # @return [String, nil] Return the full path of the component if found,
+    #   and +nil+ otherwise.
 
     def find_workflow(handle)
       search = @paths.map do |path|

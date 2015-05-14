@@ -3,7 +3,7 @@ module Ripe
   module DSL
 
     ##
-    # Creates a +Workflow+ using a DSL.  It is syntactic sugar for
+    # Create a +Workflow+ using a DSL.  It is syntactic sugar for
     #
     #    workflow 'foobar' do
     #      param :node_count,    1
@@ -21,7 +21,7 @@ module Ripe
     #   - sample: the name of the sample
     #   - params: the parameters defined at the workflow-level
     #
-    # It internally uses +ripe::DSL::Workflow+ to provide the DSL.
+    # It internally uses +Ripe::DSL::WorkflowDSL+ to provide the DSL.
     #
     # @see Ripe::DSL::TaskDSL
     # @see Ripe::DSL::WorkflowDSL
@@ -43,7 +43,7 @@ module Ripe
       attr_reader :handle, :params, :callback
 
       ##
-      # Creates a new +Workflow+ DSL
+      # Create a new +Workflow+ DSL
       #
       # @param handle [String] the name of the workflow
       # @param block [Proc] executes block in the context of +WorkflowDSL+
@@ -63,7 +63,7 @@ module Ripe
       end
 
       ##
-      # Registers a parameter
+      # Register a parameter
       #
       # @param key [Symbol] the parameter name
       # @param value [String] its value
