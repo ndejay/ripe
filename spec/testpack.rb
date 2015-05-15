@@ -1,16 +1,27 @@
 module Ripe
   class TestPack
-    attr_reader :path, :tasks, :workflows
+    attr_reader :path, :lib_path, :tasks, :workflows, :samples, :steps
 
     def initialize
-      @path = "#{Ripe::PATH}/spec/testpack/.ripe"
+      @path = "#{PATH}/spec/testpack"
+      @lib_path = "#{@path}/#{Repo::REPOSITORY_PATH}"
       @tasks = {
-        'foo' => "#{@path}/tasks/foo.sh",
-        'bar' => "#{@path}/tasks/bar.sh",
+        'foo' => "#{@lib_path}/tasks/foo.sh",
+        'bar' => "#{@lib_path}/tasks/bar.sh",
       }
       @workflows = {
-        'foobar' => "#{@path}/workflows/foobar.rb",
+        'foobar' => "#{@lib_path}/workflows/foobar.rb",
       }
+      @samples = [
+        'Sample1',
+        'Sample2',
+        'Sample3'
+      ]
+      @steps = [
+        'foo_input.txt',
+        'foo_output.txt',
+        'bar_output.txt'
+      ]
     end
   end
 end

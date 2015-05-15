@@ -1,14 +1,14 @@
 require 'spec_helper'
 
-describe Ripe::Library do
+describe Library do
   context 'when RIPELIB env is empty' do
-    before(:each) do
+    before :each do
       ENV['RIPELIB'] = ''
-      @library = Ripe::Library
+      @library = Library
     end
 
     it 'looks in the working directory' do
-      expect(@library.paths).to eql ["#{Dir.pwd}/#{Ripe::Repo::REPOSITORY_PATH}"]
+      expect(@library.paths).to eql ["#{Dir.pwd}/#{Repo::REPOSITORY_PATH}"]
     end
 
     it 'cannot resolve components of the test library' do
@@ -19,10 +19,10 @@ describe Ripe::Library do
   end
 
   context 'when RIPELIB contains the test library' do
-    before(:each) do
-      @test = Ripe::TestPack.new
-      ENV['RIPELIB'] = @test.path
-      @library = Ripe::Library
+    before :each do
+      @test = TestPack.new
+      ENV['RIPELIB'] = @test.lib_path
+      @library = Library
     end
 
     it 'looks in two directories' do
@@ -32,8 +32,8 @@ describe Ripe::Library do
     it 'looks in the working directory first' do
       # It looks in the working directory, and then in the directory
       # specified in RIPELIB.
-      expect(@library.paths[0]).to eql "#{Dir.pwd}/#{Ripe::Repo::REPOSITORY_PATH}"
-      expect(@library.paths[1]).to eql @test.path
+      expect(@library.paths[0]).to eql "#{Dir.pwd}/#{Repo::REPOSITORY_PATH}"
+      expect(@library.paths[1]).to eql @test.lib_path
     end
 
     it 'resolves task components of the test library' do

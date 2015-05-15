@@ -5,3 +5,5 @@ end
 
 require_relative '../lib/ripe'
 require_relative 'testpack'
+
+include Ripe

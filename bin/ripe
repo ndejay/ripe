@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require_relative '../lib/ripe'
-require_relative '../lib/ripe/dsl'
 require 'ripl' # REPL
 require 'hirb' # Pretty output for +ActiveRecord+ objects
 require 'thor'
