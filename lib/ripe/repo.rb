@@ -37,7 +37,7 @@ module Ripe
 
     def initialize
       @has_repository = File.exists? DATABASE_PATH
-      @controller     = WorkerController.instance
+      @controller     = WorkerController.new
     end
 
     ##

@@ -1,4 +1,3 @@
-require 'singleton'
 require_relative 'worker'
 
 module Ripe
@@ -9,8 +8,6 @@ module Ripe
   # as sync.
 
   class WorkerController
-
-    include Singleton
 
     ##
     # Prepares workers by applying the workflow callback and its parameters to
