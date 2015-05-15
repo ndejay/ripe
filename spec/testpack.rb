@@ -3,7 +3,7 @@ module Ripe
     attr_reader :path, :tasks, :workflows
 
     def initialize
-      @path = "#{Ripe::PATH}/spec/testpack/ripe"
+      @path = "#{Ripe::PATH}/spec/testpack/.ripe"
       @tasks = {
         'foo' => "#{@path}/tasks/foo.sh",
         'bar' => "#{@path}/tasks/bar.sh",
