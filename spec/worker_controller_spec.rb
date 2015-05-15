@@ -14,6 +14,7 @@ describe WorkerController do
     before :all do
       @test = TestPack.new
 
+      @oldwd  = Dir.pwd
       @tmpdir = Dir.mktmpdir 'ripe'
       Dir.chdir(@tmpdir)
 
@@ -32,6 +33,7 @@ describe WorkerController do
 
     after :all do
       FileUtils.rm_r("#{@tmpdir}")
+      Dir.chdir(@oldwd)
     end
 
     describe '#prepare' do
