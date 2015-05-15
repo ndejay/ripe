@@ -13,7 +13,7 @@ class CLI < Thor
   desc 'console', 'Enter ripe console'
   def console
     repo = Repo.new
-    repo.attach
+    repo.attach_or_create
 
     # Do not send arguments to the REPL
     ARGV.clear
@@ -36,22 +36,15 @@ class CLI < Thor
   def prepare(*samples)
     abort "No samples specified." if (samples.length == 0)
 
-    additional_vars = options[:options].split(/,/).map do |pair|
+    params = options[:options].split(/,/).map do |pair|
       key, value = pair.split(/=/)
       { key.to_sym => value }
     end
-    additional_vars = additional_vars.inject(&:merge) || {}
+    params = params.inject(&:merge) || {}
 
     repo = Repo.new
-
-    filename = repo.library.find_workflow(options[:workflow])
-    abort "Could not find workflow #{@handle}." if filename == nil
-    require_relative filename # Imports +$workflow+ from the workflow component
-
-    repo.attach_or_create # Create .ripe if it doesn't exist
-    repo.controller.prepare(samples,
-                            $workflow.callback,
-                            $workflow.params.merge(additional_vars))
+    repo.attach_or_create
+    repo.controller.prepare(options[:workflow], samples, params)
   end
 
   desc 'version', 'Retrieve ripe version'

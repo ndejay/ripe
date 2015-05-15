@@ -18,24 +18,28 @@ module Ripe
     #
     # @see Ripe::DSL::WorkflowDSL#describe
     #
+    # @param workflow [String] the name of a workflow to apply on the sample
+    #   list
     # @param samples [List] list of samples to apply the callback to
-    # @param callback [Proc] a callback function that takes as arguments the name
-    #   of sample and a hash of parameters provided by the workflow and by the
-    #   command line.
-    # @param vars [Hash] a list of worker-wide parameters
+    # @param params [Hash] a list of worker-wide parameters
 
-    def prepare(samples, callback, vars = {})
-      vars = {
+    def prepare(workflow, samples, params = {})
+      filename = Library.find_workflow(workflow)
+      abort "Could not find workflow #{@handle}." if filename == nil
+      require_relative filename # Imports +$workflow+ from the workflow component
+
+      callback = $workflow.callback
+      params = {
         wd:        Dir.pwd,
         mode:      :patch,
         group_num: 1,
-      }.merge(vars)
+      }.merge($workflow.params.merge(params))
 
-      return if ![:patch, :force, :depend].include? vars[:mode].to_sym
+      return if ![:patch, :force, :depend].include? params[:mode].to_sym
 
       samples = samples.map do |sample|
-        block = callback.call(sample, vars).prune(vars[:mode].to_sym == :force,
-                                                  vars[:mode].to_sym == :depend)
+        block = callback.call(sample, params).prune(params[:mode].to_sym == :force,
+                                                    params[:mode].to_sym == :depend)
         if block != nil
           puts "Preparing sample #{sample}"
           [sample, block]
@@ -46,8 +50,8 @@ module Ripe
       end
       samples = samples.compact
 
-      samples.each_slice(vars[:group_num].to_i).map do |worker_samples|
-        worker = Worker.create(handle: vars[:handle])
+      samples.each_slice(params[:group_num].to_i).map do |worker_samples|
+        worker = Worker.create(handle: params[:handle])
 
         blocks = worker_samples.map do |sample, block|
           # Preorder traversal of blocks -- assign incremental numbers starting from
@@ -76,7 +80,7 @@ module Ripe
           block
         end
 
-        vars = vars.merge({
+        params = params.merge({
           name:    worker.id,
           stdout:  worker.stdout,
           stderr:  worker.stderr,
@@ -84,14 +88,14 @@ module Ripe
         })
 
         file = File.new(worker.sh, 'w')
-        file.puts LiquidBlock.new("#{PATH}/share/moab.sh", vars).command
+        file.puts LiquidBlock.new("#{PATH}/share/moab.sh", params).command
         file.close
 
         worker.update({
           status:   :prepared,
-          ppn:      vars[:ppn],
-          queue:    vars[:queue],
-          walltime: vars[:walltime],
+          ppn:      params[:ppn],
+          queue:    params[:queue],
+          walltime: params[:walltime],
         })
         worker
       end

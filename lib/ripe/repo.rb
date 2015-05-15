@@ -17,8 +17,6 @@ module Ripe
   # +git+ repository and is the starting point of the package.  It
   # instantiates:
   #
-  # * a library containing information as to where to retrieve ripe
-  #   components such as tasks and workflows;
   # * a database that contains all worker metadata; and
   # * a controller that communicates the database with the compute cluster
   #   interface.
@@ -32,14 +30,13 @@ module Ripe
     DATABASE_PATH   = "#{REPOSITORY_PATH}/meta.db"
     WORKERS_PATH    = "#{REPOSITORY_PATH}/workers"
 
-    attr_reader :library, :controller
+    attr_reader :controller
 
     ##
     # Initialize a repository
 
     def initialize
       @has_repository = File.exists? REPOSITORY_PATH
-      @library        = Library.new
       @controller     = WorkerController.instance
     end
 

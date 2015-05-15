@@ -4,7 +4,7 @@ describe Ripe::Library do
   context 'when RIPELIB env is empty' do
     before(:each) do
       ENV['RIPELIB'] = ''
-      @library = Ripe::Library.new
+      @library = Ripe::Library
     end
 
     it 'looks in the working directory' do
@@ -22,7 +22,7 @@ describe Ripe::Library do
     before(:each) do
       @test = Ripe::TestPack.new
       ENV['RIPELIB'] = @test.path
-      @library = Ripe::Library.new
+      @library = Ripe::Library
     end
 
     it 'looks in two directories' do
