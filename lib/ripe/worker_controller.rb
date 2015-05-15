@@ -2,8 +2,27 @@ require 'singleton'
 require_relative 'worker'
 
 module Ripe
+
+  ##
+  # This class controls workers as well as their relationship with regards to
+  # the compute cluster: worker preparation, submission, cancellation as well
+  # as sync.
+
   class WorkerController
+
     include Singleton
+
+    ##
+    # Prepares workers by applying the workflow callback and its parameters to
+    # each sample.
+    #
+    # @see Ripe::DSL::WorkflowDSL#describe
+    #
+    # @param samples [List] list of samples to apply the callback to
+    # @param callback [Proc] a callback function that takes as arguments the name
+    #   of sample and a hash of parameters provided by the workflow and by the
+    #   command line.
+    # @param vars [Hash] a list of worker-wide parameters
 
     def prepare(samples, callback, vars = {})
       vars = {
@@ -78,6 +97,29 @@ module Ripe
       end
     end
 
+    ##
+    # Submit a job to the compute cluster system
+    #
+    # @param worker [Worker] the worker to submit
+
+    def start(worker)
+      worker.update(status: :queueing,
+                    moab_id: `qsub '#{worker.sh}'`.strip.split(/\./).first)
+    end
+
+    ##
+    # Cancel a job in the compute cluster system
+    #
+    # @param worker [Worker] the worker to cancel
+
+    def cancel(worker)
+      `canceljob #{worker.moab_id}`
+      worker.update(status: :cancelled)
+    end
+
+    ##
+    # Synchronize the status of jobs with the internal list of workers.
+
     def sync
       lists = {idle: '-i', blocked: '-b', active:  '-r'}
       lists = lists.map do |status, op|
@@ -134,5 +176,15 @@ module Ripe
         end
       end
     end
+
+    def list(n = 20)
+      Worker.last(n)
+    end
+
+    def edit(*args)
+      system("$EDITOR #{args.join(' ')}")
+    end
+
   end
+
 end
