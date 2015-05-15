@@ -177,6 +177,14 @@ module Ripe
       end
     end
 
+    def list(n = 20)
+      Worker.last(n)
+    end
+
+    def edit(*args)
+      system("$EDITOR #{args.join(' ')}")
+    end
+
   end
 
 end

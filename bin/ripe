@@ -1,7 +1,9 @@
 #!/usr/bin/env ruby
 
 require_relative '../lib/ripe'
-require_relative '../lib/ripe/dsl.rb'
+require_relative '../lib/ripe/dsl'
+require 'ripl' # REPL
+require 'hirb' # Pretty output for +ActiveRecord+ objects
 require 'thor'
 
 include Ripe
@@ -10,16 +12,20 @@ include Ripe::DSL
 class CLI < Thor
   desc 'console', 'Enter ripe console'
   def console
-    require 'irb'
-    require 'irbtools'
+    repo = Repo.new
+    repo.attach
 
-    ARGV.clear # This is necessary because otherwise all arguments
-               # get sent to IRB
+    # Do not send arguments to the REPL
+    ARGV.clear
 
-    $ripe = Repo.new
-    $ripe.attach
+    Ripl.config[:prompt] = proc do
+      # This is the only place I could think of placing +Hirb#enable+.
+      Hirb.enable unless Hirb::View.enabled?
+      'ripe> '
+    end
 
-    IRB.start "ripe #{Ripe::VERSION}"
+    # Launch the REPL session in the context of +WorkerController+.
+    Ripl.start :binding => repo.controller.instance_eval { binding }
   end
 
   desc 'prepare SAMPLES', 'Prepare jobs from template workflow'
@@ -36,16 +42,16 @@ class CLI < Thor
     end
     additional_vars = additional_vars.inject(&:merge) || {}
 
-    $ripe = Repo.new
+    repo = Repo.new
 
-    filename = $ripe.library.find_workflow(options[:workflow])
+    filename = repo.library.find_workflow(options[:workflow])
     abort "Could not find workflow #{@handle}." if filename == nil
     require_relative filename # Imports +$workflow+ from the workflow component
 
-    $ripe.attach_or_create # Create .ripe if it doesn't exist
-    $ripe.controller.prepare(samples,
-                             $workflow.callback,
-                             $workflow.params.merge(additional_vars))
+    repo.attach_or_create # Create .ripe if it doesn't exist
+    repo.controller.prepare(samples,
+                            $workflow.callback,
+                            $workflow.params.merge(additional_vars))
   end
 
   desc 'version', 'Retrieve ripe version'
