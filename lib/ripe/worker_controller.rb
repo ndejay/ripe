@@ -25,7 +25,7 @@ module Ripe
 
     def prepare(workflow, samples, params = {})
       filename = Library.find_workflow(workflow)
-      abort "Could not find workflow #{@handle}." if filename == nil
+      abort "Could not find workflow #{workflow}." if filename == nil
       require_relative filename # Imports +$workflow+ from the workflow component
 
       callback = $workflow.callback
@@ -102,23 +102,39 @@ module Ripe
     end
 
     ##
-    # Submit a job to the compute cluster system
+    # Submit worker jobs to the compute cluster system.
     #
-    # @param worker [Worker] the worker to submit
+    # @param workers [Array] a list of workers
 
-    def start(worker)
-      worker.update(status: :queueing,
-                    moab_id: `qsub '#{worker.sh}'`.strip.split(/\./).first)
+    def start(workers)
+      workers = [workers] if workers.is_a? Worker
+
+      workers.map do |worker|
+        if worker.status == 'prepared'
+          worker.update(status: :queueing,
+                        moab_id: `qsub '#{worker.sh}'`.strip.split(/\./).first)
+        else
+          puts "Worker #{worker.id} could not be started: not prepared"
+        end
+      end
     end
 
     ##
-    # Cancel a job in the compute cluster system
+    # Cancel worker jobs in the compute cluster system.
     #
-    # @param worker [Worker] the worker to cancel
+    # @param workers [Array] a list of workers
 
-    def cancel(worker)
-      `canceljob #{worker.moab_id}`
-      worker.update(status: :cancelled)
+    def cancel(workers)
+      workers = [workers] if workers.is_a? Worker
+
+      workers.map do |worker|
+        if ['queueing', 'idle', 'blocked', 'active'].include? worker.status
+          `canceljob #{worker.moab_id}`
+          worker.update(status: :cancelled)
+        else
+          puts "Worker #{worker.id} could not be cancelled: not started"
+        end
+      end
     end
 
     ##
@@ -181,9 +197,17 @@ module Ripe
       end
     end
 
+    ##
+    # List the n most recent workers
+    #
+    # @param n [Integer] the number of most recent workers to keep
+
     def list(n = 20)
       Worker.last(n)
     end
+
+    ##
+    # Launch the an interactive text editor from the console
 
     def edit(*args)
       system("$EDITOR #{args.join(' ')}")

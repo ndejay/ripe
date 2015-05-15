@@ -41,6 +41,15 @@ module Ripe
     end
 
     ##
+    # Return whether the ripe repository exists
+    #
+    # @return [Boolean] whether the repository exists
+
+    def has_repository?
+      @has_repository
+    end
+
+    ##
     # Attach to an existing database
 
     def attach

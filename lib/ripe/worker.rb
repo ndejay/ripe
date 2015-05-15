@@ -30,15 +30,5 @@ module Ripe
     before_destroy do
       FileUtils.rm_r dir if Dir.exists? dir
     end
-
-    def start
-      raise "Worker #{id} could not be started: not prepared" unless self.status == 'prepared'
-      WorkerController.instance.start(self)
-    end
-
-    def cancel
-      raise "Worker #{id} could not be cancelled: not started" unless ['queueing', 'idle', 'blocked', 'active'].include? self.status
-      WorkerController.instance.cancel(self)
-    end
   end
 end

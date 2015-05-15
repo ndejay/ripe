@@ -9,11 +9,22 @@ require 'thor'
 include Ripe
 include Ripe::DSL
 
+$repo = Repo.new
+
 class CLI < Thor
+  desc 'init', 'Initialize ripe repository'
+  def init
+    puts "Initialized ripe repository in #{Dir.pwd}"
+    $repo.attach_or_create
+  end
+
   desc 'console', 'Enter ripe console'
   def console
-    repo = Repo.new
-    repo.attach_or_create
+    $repo.attach
+
+    unless $repo.has_repository?
+      abort "Cannot launch console: ripe repo not initialized"
+    end
 
     # Do not send arguments to the REPL
     ARGV.clear
@@ -25,7 +36,7 @@ class CLI < Thor
     end
 
     # Launch the REPL session in the context of +WorkerController+.
-    Ripl.start :binding => repo.controller.instance_eval { binding }
+    Ripl.start :binding => $repo.controller.instance_eval { binding }
   end
 
   desc 'prepare SAMPLES', 'Prepare jobs from template workflow'
@@ -34,6 +45,12 @@ class CLI < Thor
   option :options, :aliases => '-o', :type => :string, :required => false,
     :desc => 'Options', :default => ''
   def prepare(*samples)
+    $repo.attach
+
+    unless $repo.has_repository?
+      abort "Cannot launch console: ripe repo not initialized"
+    end
+
     abort "No samples specified." if (samples.length == 0)
 
     params = options[:options].split(/,/).map do |pair|
@@ -42,9 +59,7 @@ class CLI < Thor
     end
     params = params.inject(&:merge) || {}
 
-    repo = Repo.new
-    repo.attach_or_create
-    repo.controller.prepare(options[:workflow], samples, params)
+    $repo.controller.prepare(options[:workflow], samples, params)
   end
 
   desc 'version', 'Retrieve ripe version'
