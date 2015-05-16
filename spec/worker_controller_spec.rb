@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-include Ripe::DSL
+include Ripe::DSL # required by dirty hack +WorkerController#prepare+
 
 require 'digest'
 require 'fileutils'
@@ -25,9 +25,10 @@ describe WorkerController do
       @controller = @repo.controller
 
       @test.samples.each do |sample|
+        source = "#{@test.path}/#{sample}/#{@test.steps.first}"
+        dest = "#{sample}/#{@test.steps.first}"
         FileUtils.mkdir_p(sample)
-        FileUtils.cp("#{@test.path}/#{sample}/#{@test.steps.first}",
-          "#{sample}/#{@test.steps.first}")
+        FileUtils.cp(source, dest)
       end
     end
 
@@ -44,7 +45,34 @@ describe WorkerController do
 
       it 'prepares workers with accurate task scripts' do
         DB::Task.all.each do |task|
-          expect(signature(task.sh)).to eql signature("#{@test.path}/#{task.sh}")
+          test_hash = signature(task.sh)
+          ref_hash = signature("#{@test.path}/#{task.sh}")
+          expect(test_hash).to eql ref_hash
+        end
+      end
+
+      it 'properly prepares workers in force mode' do
+        @controller.prepare 'foobar', [@test.samples[0]], pwd: @test.path, mode: :force
+
+        ref_tasks = DB::Worker.find(1).tasks
+        test_tasks = DB::Worker.find(4).tasks
+
+        ref_tasks.zip(test_tasks).map do |ref, test|
+          ref_hash = signature(ref.sh)
+          test_hash = signature(test.sh)
+          expect(test_hash).to eql ref_hash
+        end
+      end
+    end
+
+    describe '#local' do
+      it 'runs worker jobs locally' do
+        worker = DB::Worker.find(1)
+        @controller.local worker
+        @test.steps.map do |step|
+          test_hash = signature("#{@test.samples[0]}/#{step}")
+          ref_hash = signature("#{@test.path}/#{@test.samples[0]}/#{step}")
+          expect(test_hash).to eql ref_hash
         end
       end
     end

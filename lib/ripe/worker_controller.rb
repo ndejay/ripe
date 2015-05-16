@@ -19,7 +19,7 @@ module Ripe
     # @param params [Hash] a list of worker-wide parameters
 
     def prepare(workflow, samples, params = {})
-      filename = Library.find_workflow(workflow)
+      filename = Library.find(:workflow, workflow)
       abort "Could not find workflow #{workflow}." if filename == nil
       require_relative filename # Imports +$workflow+ from the workflow component
 
@@ -96,15 +96,31 @@ module Ripe
       end
     end
 
+    # some private #
+    #
+    def distribute(workers, &block)
+      workers = [workers] if workers.is_a? DB::Worker
+      workers.map { |w| block.call(w) }
+    end
+
+    ##
+    # Run worker job code into bash locally.
+    #
+    # @param workers [Array] a list of workers
+
+    def local(workers)
+      distribute workers do |worker|
+        `bash #{worker.sh}`
+      end
+    end
+
     ##
     # Submit worker jobs to the compute cluster system.
     #
     # @param workers [Array] a list of workers
 
     def start(workers)
-      workers = [workers] if workers.is_a? DB::Worker
-
-      workers.map do |worker|
+      distribute workers do |worker|
         if worker.status == 'prepared'
           worker.update(status: :queueing,
                         moab_id: `qsub '#{worker.sh}'`.strip.split(/\./).first)
@@ -120,9 +136,7 @@ module Ripe
     # @param workers [Array] a list of workers
 
     def cancel(workers)
-      workers = [workers] if workers.is_a? DB::Worker
-
-      workers.map do |worker|
+      distribute workers do |worker|
         if ['queueing', 'idle', 'blocked', 'active'].include? worker.status
           `canceljob #{worker.moab_id}`
           worker.update(status: :cancelled)

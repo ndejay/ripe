@@ -21,35 +21,22 @@ module Ripe
       end
 
       ##
-      # Search throughout the library for a task component by the name of
-      # +handle+.  When there is more than one match, give precendence to the
+      # Search throughout the library for a task or workflow component by the
+      # name of +handle+.  When there is more than one match, give precendence to
       # component whose path is declared first.
       #
-      # @param handle [String] Task to search for
-      # @return [String, nil] Return the full path of the component if found,
-      #   and +nil+ otherwise.
+      # @param comp [Symbol] Type of component: either +:workflow+ or
+      #   +:task+.
+      # @param handle [String] Name of component
+      # @return [String, nil] Full path of the component if found, and +nil+
+      #   otherwise.
+ 
+      def find(comp, handle)
+        ext = { task:     'sh',
+                workflow: 'rb' }
 
-      def find_task(handle)
         search = paths.map do |path|
-          filename = "#{path}/tasks/#{handle}.sh"
-          (File.exists? filename) ? filename : nil
-        end
-
-        search.compact.first
-      end
-
-      ##
-      # Search throughout the library for a workflow component by the name of
-      # +handle+.  When there is more than one match, give precendence to
-      # component whose path is declared first.
-      #
-      # @param handle [String] Workflow to search for
-      # @return [String, nil] Return the full path of the component if found,
-      #   and +nil+ otherwise.
-
-      def find_workflow(handle)
-        search = paths.map do |path|
-          filename = "#{path}/workflows/#{handle}.rb"
+          filename = "#{path}/#{comp}s/#{handle}.#{ext[comp]}"
           (File.exists? filename) ? filename : nil
         end
 
