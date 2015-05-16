@@ -1,14 +1,5 @@
 require 'active_record'
 require 'fileutils'
-require_relative 'block'
-require_relative 'worker'
-require_relative 'worker_controller'
-require_relative 'worker_migration'
-require_relative 'working_block'
-require_relative 'library'
-require_relative 'liquid_block'
-require_relative 'task'
-require_relative 'task_migration'
 
 module Ripe
 
@@ -77,8 +68,8 @@ module Ripe
         attach
 
         # Create the tables
-        WorkerMigration.up
-        TaskMigration.up
+        DB::WorkerMigration.up
+        DB::TaskMigration.up
       rescue
         destroy
       end

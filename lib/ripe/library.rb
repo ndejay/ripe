@@ -1,5 +1,3 @@
-require_relative 'repo'
-
 module Ripe
 
   ##

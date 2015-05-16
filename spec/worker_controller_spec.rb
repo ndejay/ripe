@@ -39,11 +39,11 @@ describe WorkerController do
     describe '#prepare' do
       it 'prepares workers' do
         @controller.prepare 'foobar', @test.samples, pwd: @test.path
-        expect(Worker.all.length).to eql 3
+        expect(DB::Worker.all.length).to eql 3
       end
 
       it 'prepares workers with accurate task scripts' do
-        Task.all.each do |task|
+        DB::Task.all.each do |task|
           expect(signature(task.sh)).to eql signature("#{@test.path}/#{task.sh}")
         end
       end

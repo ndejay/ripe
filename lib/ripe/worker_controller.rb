@@ -1,5 +1,3 @@
-require_relative 'worker'
-
 module Ripe
 
   ##
@@ -48,7 +46,7 @@ module Ripe
       samples = samples.compact
 
       samples.each_slice(params[:group_num].to_i).map do |worker_samples|
-        worker = Worker.create(handle: params[:handle])
+        worker = DB::Worker.create(handle: params[:handle])
 
         blocks = worker_samples.map do |sample, block|
           # Preorder traversal of blocks -- assign incremental numbers starting from
@@ -104,7 +102,7 @@ module Ripe
     # @param workers [Array] a list of workers
 
     def start(workers)
-      workers = [workers] if workers.is_a? Worker
+      workers = [workers] if workers.is_a? DB::Worker
 
       workers.map do |worker|
         if worker.status == 'prepared'
@@ -122,7 +120,7 @@ module Ripe
     # @param workers [Array] a list of workers
 
     def cancel(workers)
-      workers = [workers] if workers.is_a? Worker
+      workers = [workers] if workers.is_a? DB::Worker
 
       workers.map do |worker|
         if ['queueing', 'idle', 'blocked', 'active'].include? worker.status
@@ -155,7 +153,7 @@ module Ripe
         moab_id   = job[:moab_id]
         time      = job[:time]
         status    = job[:status]
-        worker    = Worker.find_by(moab_id: moab_id)
+        worker    = DB::Worker.find_by(moab_id: moab_id)
 
         if worker
           worker.update(time: time)
@@ -172,8 +170,8 @@ module Ripe
       # Mark workers that were previously in active, blocked or idle as completed
       # if they cannot be found anymore.
       jobs = lists.map { |job| job[:moab_id] }
-      Worker.where('status in (:statuses)',
-                   :statuses => ['active', 'idle', 'blocked']).each do |worker|
+      DB::Worker.where('status in (:statuses)',
+                       :statuses => ['active', 'idle', 'blocked']).each do |worker|
         if jobs.include? worker.moab_id
           jobs.delete(worker.moab_id) # Remove from list
         elsif (worker.status != 'cancelled')
@@ -200,7 +198,7 @@ module Ripe
     # @param n [Integer] the number of most recent workers to keep
 
     def list(n = 20)
-      Worker.last(n)
+      DB::Worker.last(n)
     end
 
     ##

@@ -6,6 +6,7 @@ require 'hirb' # Pretty output for +ActiveRecord+ objects
 require 'thor'
 
 include Ripe
+include Ripe::DB
 include Ripe::DSL
 
 $repo = Repo.new
