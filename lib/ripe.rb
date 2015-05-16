@@ -5,6 +5,7 @@ require_relative 'ripe/library'
 require_relative 'ripe/repo'
 require_relative 'ripe/worker_controller'
 
+require_relative 'ripe/cli'
 require_relative 'ripe/version'
 
 module Ripe
