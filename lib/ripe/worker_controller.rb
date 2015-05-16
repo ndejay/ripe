@@ -79,11 +79,11 @@ module Ripe
           name:    worker.id,
           stdout:  worker.stdout,
           stderr:  worker.stderr,
-          command: SerialBlock.new(*blocks).command,
+          command: Blocks::SerialBlock.new(*blocks).command,
         })
 
         file = File.new(worker.sh, 'w')
-        file.puts LiquidBlock.new("#{PATH}/share/moab.sh", params).command
+        file.puts Blocks::LiquidBlock.new("#{PATH}/share/moab.sh", params).command
         file.close
 
         worker.update({

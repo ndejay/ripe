@@ -37,7 +37,7 @@ module Ripe
       abort "Could not find task #{handle}." if filename == nil
 
       params = TaskDSL.new(handle, &block).params
-      WorkingBlock.new(filename, params)
+      Blocks::WorkingBlock.new(filename, params)
     end
 
     ##
