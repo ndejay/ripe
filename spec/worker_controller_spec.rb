@@ -25,10 +25,12 @@ describe WorkerController do
       @controller = @repo.controller
 
       @test.samples.each do |sample|
-        source = "#{@test.path}/#{sample}/#{@test.steps.first}"
-        dest = "#{sample}/#{@test.steps.first}"
         FileUtils.mkdir_p(sample)
-        FileUtils.cp(source, dest)
+        @test.steps.each do |step|
+          source = "#{@test.path}/#{sample}/#{step}"
+          dest = "#{sample}/#{step}"
+          FileUtils.cp(source, dest)
+        end
       end
     end
 
@@ -39,7 +41,8 @@ describe WorkerController do
 
     describe '#prepare' do
       it 'prepares workers' do
-        @controller.prepare 'foobar', @test.samples, pwd: @test.path
+        @controller.prepare 'foobar', @test.samples, pwd: @test.path, mode: :force
+        # Prepares workers 1-2-3
         expect(DB::Worker.all.length).to eql 3
       end
 
@@ -52,10 +55,15 @@ describe WorkerController do
       end
 
       it 'properly prepares workers in force mode' do
-        @controller.prepare 'foobar', [@test.samples[0]], pwd: @test.path, mode: :force
+        sample = @test.samples[0]
+
+        @controller.prepare 'foobar', [sample], pwd: @test.path, mode: :force
 
         ref_tasks = DB::Worker.find(1).tasks
         test_tasks = DB::Worker.find(4).tasks
+
+        expect(ref_tasks.length).to eql 2
+        expect(test_tasks.length).to eql 2
 
         ref_tasks.zip(test_tasks).map do |ref, test|
           ref_hash = signature(ref.sh)
@@ -63,16 +71,59 @@ describe WorkerController do
           expect(test_hash).to eql ref_hash
         end
       end
-    end
 
-    describe '#local' do
-      it 'runs worker jobs locally' do
-        worker = DB::Worker.find(1)
-        @controller.local worker
-        @test.steps.map do |step|
-          test_hash = signature("#{@test.samples[0]}/#{step}")
-          ref_hash = signature("#{@test.path}/#{@test.samples[0]}/#{step}")
+      it 'properly prepares workers in patch mode' do
+        sample = @test.samples[0]
+        step = @test.steps[1]
+
+        # Delete the first output
+        FileUtils.rm_r("#{sample}/#{step}")
+
+        @controller.prepare 'foobar', [sample], pwd: @test.path, mode: :patch
+
+        ref_tasks = DB::Worker.find(1).tasks
+        test_tasks = DB::Worker.find(5).tasks
+
+        expect(ref_tasks.length).to eql 2
+        expect(test_tasks.length).to eql 1
+
+        ref_hash = signature(ref_tasks.first.sh)
+        test_hash = signature(test_tasks.first.sh)
+
+        expect(test_hash).to eql ref_hash
+      end
+
+      it 'properly prepares workers in depend mode' do
+        sample = @test.samples[1]
+        step = @test.steps[1]
+
+        # Delete the first output
+        FileUtils.rm_r("#{sample}/#{step}")
+
+        @controller.prepare 'foobar', [sample], pwd: @test.path, mode: :depend
+
+        ref_tasks = DB::Worker.find(2).tasks
+        test_tasks = DB::Worker.find(6).tasks
+
+        expect(ref_tasks.length).to eql 2
+        expect(test_tasks.length).to eql 2
+
+        ref_tasks.zip(test_tasks).map do |ref, test|
+          ref_hash = signature(ref.sh)
+          test_hash = signature(test.sh)
           expect(test_hash).to eql ref_hash
+        end
+      end
+
+      describe '#local' do
+        it 'runs worker jobs locally' do
+          worker = DB::Worker.find(1)
+          @controller.local worker
+          @test.steps.map do |step|
+            test_hash = signature("#{@test.samples[0]}/#{step}")
+            ref_hash = signature("#{@test.path}/#{@test.samples[0]}/#{step}")
+            expect(test_hash).to eql ref_hash
+          end
         end
       end
     end
