@@ -1,3 +1,5 @@
+require_relative 'worker_controller/preparer'
+
 module Ripe
 
   ##
@@ -8,96 +10,24 @@ module Ripe
   class WorkerController
 
     ##
-    # Prepares workers by applying the workflow callback and its parameters to
+    # Prepare workers by applying the workflow callback and its parameters to
     # each sample.
     #
     # @see Ripe::DSL::WorkflowDSL#describe
+    # @see Ripe::WorkerController::Preparer
     #
     # @param workflow [String] the name of a workflow to apply on the sample
     #   list
-    # @param samples [List] list of samples to apply the callback to
+    # @param samples [Array] list of samples to apply the callback to
     # @param params [Hash] a list of worker-wide parameters
 
     def prepare(workflow, samples, params = {})
-      filename = Library.find(:workflow, workflow)
-      abort "Could not find workflow #{workflow}." if filename == nil
-      require_relative filename # Imports +$workflow+ from the workflow component
-
-      callback = $workflow.callback
-      params = {
-        wd:        Dir.pwd,
-        mode:      :patch,
-        group_num: 1,
-      }.merge($workflow.params.merge(params))
-
-      return if ![:patch, :force, :depend].include? params[:mode].to_sym
-
-      samples = samples.map do |sample|
-        block = callback.call(sample, params).prune(params[:mode].to_sym == :force,
-                                                    params[:mode].to_sym == :depend)
-        if block != nil
-          puts "Preparing sample #{sample}"
-          [sample, block]
-        else
-          puts "Nothing to do for sample #{sample}"
-          nil
-        end
-      end
-      samples = samples.compact
-
-      samples.each_slice(params[:group_num].to_i).map do |worker_samples|
-        worker = DB::Worker.create(handle: params[:handle])
-
-        blocks = worker_samples.map do |sample, block|
-          # Preorder traversal of blocks -- assign incremental numbers starting from
-          # 1 to each node as it is being traversed, as well as producing the job
-          # file for each task.
-          post_var_assign = lambda do |subblock|
-            if subblock.blocks.length == 0
-              # This section is only called when the subblock is actually a working
-              # block (a leaf in the block arborescence).
-              task = worker.tasks.create({
-                sample: sample,
-                block:  subblock.id,
-              })
-
-              file = File.new(task.sh, 'w')
-              file.puts subblock.command
-              file.close
-
-              subblock.vars.merge!(log: task.log)
-            else
-              subblock.blocks.each(&post_var_assign)
-            end
-          end
-
-          post_var_assign.call(block)
-          block
-        end
-
-        params = params.merge({
-          name:    worker.id,
-          stdout:  worker.stdout,
-          stderr:  worker.stderr,
-          command: Blocks::SerialBlock.new(*blocks).command,
-        })
-
-        file = File.new(worker.sh, 'w')
-        file.puts Blocks::LiquidBlock.new("#{PATH}/share/moab.sh", params).command
-        file.close
-
-        worker.update({
-          status:   :prepared,
-          ppn:      params[:ppn],
-          queue:    params[:queue],
-          walltime: params[:walltime],
-        })
-        worker
-      end
+      Preparer.new(workflow, samples, params)
     end
 
-    # some private #
+    ##
     #
+
     def distribute(workers, &block)
       workers = [workers] if workers.is_a? DB::Worker
       workers.map { |w| block.call(w) }
