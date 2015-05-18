@@ -1,10 +1,5 @@
 language: ruby
 cache: bundler
-rvm:
-  - 2.1.5
 script: bundle exec rake spec
-branches:
-  only:
-    - develop
 notifications:
   email: false
