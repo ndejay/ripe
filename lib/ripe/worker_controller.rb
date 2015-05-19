@@ -1,4 +1,5 @@
 require_relative 'worker_controller/preparer'
+require_relative 'worker_controller/syncer'
 
 module Ripe
 
@@ -78,62 +79,11 @@ module Ripe
 
     ##
     # Synchronize the status of jobs with the internal list of workers.
+    #
+    # @see Ripe::WorkerController::Syncer
 
     def sync
-      lists = {idle: '-i', blocked: '-b', active:  '-r'}
-      lists = lists.map do |status, op|
-        showq = `showq -u $(whoami) #{op} | grep $(whoami)`.split("\n")
-        showq.map do |job|
-          {
-            moab_id:   job[/^([0-9]+) /, 1],
-            time:      job[/  ([0-9]{1,2}(\:[0-9]{2})+)  /, 1],
-            status:    status,
-          }
-        end
-      end
-
-      # Update status
-      lists = lists.inject(&:+).each do |job|
-        moab_id   = job[:moab_id]
-        time      = job[:time]
-        status    = job[:status]
-        worker    = DB::Worker.find_by(moab_id: moab_id)
-
-        if worker
-          worker.update(time: time)
-          unless ['cancelled', status].include? worker.status
-            checkjob = `checkjob #{moab_id}`
-            worker.update({
-              host:      checkjob[/Allocated Nodes:\n\[(.*):[0-9]+\]\n/, 1],
-              status:    status, # Queued jobs that appear become either idle, blocked or active
-            })
-          end
-        end
-      end
-
-      # Mark workers that were previously in active, blocked or idle as completed
-      # if they cannot be found anymore.
-      jobs = lists.map { |job| job[:moab_id] }
-      DB::Worker.where('status in (:statuses)',
-                       :statuses => ['active', 'idle', 'blocked']).each do |worker|
-        if jobs.include? worker.moab_id
-          jobs.delete(worker.moab_id) # Remove from list
-        elsif (worker.status != 'cancelled')
-          if File.exists? worker.stdout
-            stdout = File.new(worker.stdout).readlines.join
-          else
-            stdout = ""
-          end
-          worker.update({
-            cpu_used:    stdout[/Resources:[ \t]*cput=([0-9]{1,2}(\:[0-9]{2})+),/, 1],
-            exit_code:   stdout[/Exit code:[ \t]*(.*)$/, 1],
-            host:        stdout[/Nodes:[ \t]*(.*)$/, 1],
-            memory_used: stdout[/Resources:.*,mem=([0-9]*[a-zA-Z]*),/, 1],
-            time:        stdout[/Resources:.*,walltime=([0-9]{1,2}(\:[0-9]{2})+)$/, 1],
-            status:      :completed,
-          })
-        end
-      end
+      Syncer.new
     end
 
     ##
