@@ -1,4 +1,5 @@
 # Ripe
+[![Gem Version](https://badge.fury.io/rb/ripe.svg)](http://badge.fury.io/rb/ripe)
 [![Build Status](https://travis-ci.org/ndejay/ripe.svg)](https://travis-ci.org/ndejay/ripe)
 [![Code Climate](https://codeclimate.com/github/ndejay/ripe/badges/gpa.svg)](https://codeclimate.com/github/ndejay/ripe)
 [![Test Coverage](https://codeclimate.com/github/ndejay/ripe/badges/coverage.svg)](https://codeclimate.com/github/ndejay/ripe)
