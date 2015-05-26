@@ -29,22 +29,8 @@ module Ripe
         # Extract callback and params from input
         callback, params = load_workflow(workflow, params)
 
-        # Apply the workflow (callback) to each sample, producing a single root
-        # block per sample.
-        sample_blocks = samples.map do |sample|
-          block = callback.call(sample, params).prune(params[:mode].to_sym == :force,
-                                                      params[:mode].to_sym == :depend)
-          if block != nil
-            puts "Preparing sample #{sample}"
-            {sample => block}
-          else
-            puts "Nothing to do for sample #{sample}"
-            nil
-          end
-        end
-
-        # Produce a {sample => block} hash
-        sample_blocks = sample_blocks.compact.inject(&:merge)
+        # Apply the workflow to each sample
+        sample_blocks = prepare_sample_blocks(samples, callback, params)
 
         # Split samples into groups of +:group_num+ samples and produce a
         # worker from each of these groups.
@@ -77,6 +63,32 @@ module Ripe
         }.merge($workflow.params.merge(params))
 
         [$workflow.callback, params]
+      end
+
+      ##
+      # Apply the workflow (callback) to each sample, producing a single root
+      # block per sample.
+      #
+      # @param samples [Array] a list of samples
+      # @param callback [Proc] workflow callback to be applied to each sample
+      # @param params [Hash] a list of worker-wide parameters
+      # @return [Hash] a +{sample => block}+ hash
+
+      def prepare_sample_blocks(samples, callback, params)
+        sample_blocks = samples.map do |sample|
+          block = callback.call(sample, params).prune(params[:mode].to_sym == :force,
+                                                      params[:mode].to_sym == :depend)
+          if block != nil
+            puts "Preparing sample #{sample}"
+            {sample => block}
+          else
+            puts "Nothing to do for sample #{sample}"
+            nil
+          end
+        end
+
+        # Produce a {sample => block} hash
+        sample_blocks.compact.inject(&:merge)
       end
 
       ##

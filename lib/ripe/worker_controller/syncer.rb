@@ -13,15 +13,15 @@ module Ripe
       # Synchronize the status of jobs with the internal list of workers.
 
       def initialize
-        lists = list_running_jobs
-        update_running_workers(lists)
-        update_completed_workers(lists)
+        running_jobs = list_running_jobs
+        update_running_workers(running_jobs)
+        update_completed_workers(running_jobs.map { |job| job[:moab_id] })
       end
 
       ##
       # Retrieve status for all running jobs.
       #
-      # @return [Array] a list of job statuses
+      # @return [Array] a list of job statuses (+moab_id+, +time+ and +status+)
 
       def list_running_jobs
         lists = {idle: '-i', blocked: '-b', active:  '-r'}
@@ -41,7 +41,7 @@ module Ripe
       ##
       # Update the status of running jobs.
       #
-      # @param [Array] a list of running jobs
+      # @param running_jobs [Array] a list of running jobs
 
       def update_running_workers(running_jobs)
         # Update status
@@ -66,17 +66,16 @@ module Ripe
 
       ##
       # Update the status of completed jobs.  Mark workers that were previously
-      # in active, blocked or idle as completed if they cannot be found anymore.
+      # in active, blocked or idle as completed if they cannot be found in the
+      # queue of the compute cluster engine.
       #
-      # @param [Array] a list of running jobs
+      # @param running_job_ids [Array] a list of running job ids
 
-      def update_completed_workers(running_jobs)
-        jobs = running_jobs.map { |job| job[:moab_id] }
-
+      def update_completed_workers(running_job_ids)
         DB::Worker.where('status in (:statuses)',
                          :statuses => ['active', 'idle', 'blocked']).each do |worker|
-          if jobs.include?(worker.moab_id)
-            jobs.delete(worker.moab_id) # Remove from list
+          if running_job_ids.include?(worker.moab_id)
+            running_job_ids.delete(worker.moab_id) # Remove from list
           elsif (worker.status != 'cancelled')
             stdout = (File.exists?(worker.stdout)) ? File.new(worker.stdout).readlines.join : ""
             worker.update({
