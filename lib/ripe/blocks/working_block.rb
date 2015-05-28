@@ -10,19 +10,34 @@ module Ripe
         [@id]
       end
 
-      def command
-        declarations = vars.map do |key, value|
+      ##
+      # Return working block parameters+ as a sequence of bash variable
+      # assignments.
+      #
+      # @return [String] sequence of bash variable assignments
+
+      def declarations
+        vars.map do |key, value|
           lh = key.upcase
-          rh = value.is_a?(Array) ? "(\"#{value.join("\" \"")}\")" :
-            "\"#{value}\""
+          rh = value.is_a?(Array) ? "(\"#{value.join("\" \"")}\")" : "\"#{value}\""
           "#{lh}=#{rh}"
         end
+      end
 
-        "\n# <#{id}>" +
-          ("\n" * 2) + declarations.join("\n") +
-          ("\n" * 2) + "exec 1>\"$LOG\" 2>&1" +
-          ("\n" * 2) + File.new(@filename).read + "\necho \"##.DONE.##\"" +
-          ("\n" * 2) + "# </#{id}>\n"
+      def command
+        <<-EOF.gsub(/^[ ]+/, '')
+
+        # <#{id}>
+
+        #{declarations.join("\n")}
+
+        exec 1>"$LOG" 2>&1
+
+        #{File.new(@filename).read}
+        echo "##.DONE.##"
+
+        # </#{id}>
+        EOF
       end
 
       def prune(protect, depend)
