@@ -21,16 +21,6 @@ module Ripe
       end
 
       ##
-      # (see Block#topology)
-      #
-      # Since a {WorkingBlock} is always a leaf node in the tree, the subtree
-      # starting at the leaf node only contains the {WorkingBlock}.
-
-      def topology
-        [@id]
-      end
-
-      ##
       # Return working block +parameters+ as a sequence of bash variable
       # assignments.
       #
@@ -92,6 +82,16 @@ module Ripe
 
         # If there are no targets at all, then assume that all targets exist
         targets_exist == nil ? true : targets_exist
+      end
+
+      ##
+      # (see Block#topology)
+      #
+      # Since a {WorkingBlock} is always a leaf node in the tree, the subtree
+      # starting at the leaf node only contains the {WorkingBlock}.
+
+      def topology
+        [@id]
       end
 
     end

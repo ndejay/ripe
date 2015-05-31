@@ -45,7 +45,8 @@ module Ripe
       # @param protect [Boolean] if the current block (and recursively, its
       #   children) should be protected from pruning -- setting this parameter
       #   to +true+ guarantees that the block will not be pruned
-      # @param depend [Boolean] TODO: I forgot!
+      # @param depend [Boolean] if the current block is unprotected because
+      #   its parent (serially) needs to be executed
       # @return [Block, nil] a +Block+ representing the subtree that has not
       #   been pruned, and +nil+ otherwise
 
