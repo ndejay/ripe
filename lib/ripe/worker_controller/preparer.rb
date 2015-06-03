@@ -21,13 +21,13 @@ module Ripe
       # @param samples [Array<String>] list of samples to apply the callback to
       # @param params [Hash<Symbol, String>] a list of worker-wide parameters
 
-      def initialize(workflow, samples, params)
-        unless [:patch, :force, :depend].include?(params[:mode].to_sym)
-          abort "Invalid mode #{params[:mode]}."
-        end
-
+      def initialize(workflow, samples, params = {})
         # Extract callback and params from input
         callback, params = load_workflow(workflow, params)
+
+        if ![:patch, :force, :depend].include?(params[:mode].to_sym)
+          abort "Invalid mode #{params[:mode]}."
+        end
 
         # Apply the workflow to each sample
         sample_blocks = prepare_sample_blocks(samples, callback, params)
