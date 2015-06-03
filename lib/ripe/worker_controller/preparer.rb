@@ -18,11 +18,11 @@ module Ripe
       #
       # @param workflow [String] the name of a workflow to apply on the sample
       #   list
-      # @param samples [Array] list of samples to apply the callback to
-      # @param params [Hash] a list of worker-wide parameters
+      # @param samples [Array<String>] list of samples to apply the callback to
+      # @param params [Hash<Symbol, String>] a list of worker-wide parameters
 
       def initialize(workflow, samples, params)
-        unless [:patch, :force, :depend].include? params[:mode].to_sym
+        unless [:patch, :force, :depend].include?(params[:mode].to_sym)
           abort "Invalid mode #{params[:mode]}."
         end
 
@@ -43,9 +43,9 @@ module Ripe
       # Load a workflow and return its +callback+ and +params+ components.
       #
       # @param workflow [String] the name of a workflow
-      # @param params [Hash] a list of worker-wide parameters
-      # @return [Proc, Hash] a list containing the workflow callback and
-      #   params
+      # @param params [Hash<Symbol, String>] a list of worker-wide parameters
+      # @return [Proc, Hash<Symbol, String>] a list containing the workflow callback
+      #   and default params
 
       def load_workflow(workflow, params)
         filename = Library.find(:workflow, workflow)
@@ -69,7 +69,7 @@ module Ripe
       # Apply the workflow (callback) to each sample, producing a single root
       # block per sample.
       #
-      # @param samples [Array] a list of samples
+      # @param samples [Array<String>] a list of samples
       # @param callback [Proc] workflow callback to be applied to each sample
       # @param params [Hash] a list of worker-wide parameters
       # @return [Hash] a +{sample => block}+ hash
@@ -129,11 +129,11 @@ module Ripe
       ##
       # Organize worker blocks into tasks and prepare them.
       #
-      # @param worker_sample_blocks [Hash] a list containing as many elements
-      #   as there are samples in the group, with each element containing
-      #   +[String, Blocks::Block]+
+      # @param worker_sample_blocks [Array<Hash<String, Blocks::Block>>] a list
+      # containing as many elements as there are samples in the group
       # @param worker [DB::Worker] worker
-      # @return [Array] a list of all the blocks
+      # @return [Array<Blocks::Block>] a list of all the prepared blocks for a
+      #   worker
 
       def prepare_worker_blocks(worker_sample_blocks, worker)
         worker_sample_blocks.map do |sample, block|

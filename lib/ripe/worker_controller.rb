@@ -17,17 +17,20 @@ module Ripe
     # @see Ripe::DSL::WorkflowDSL#describe
     # @see Ripe::WorkerController::Preparer
     #
-    # @param workflow [String] the name of a workflow to apply on the sample
-    #   list
-    # @param samples [Array] list of samples to apply the callback to
-    # @param params [Hash] a list of worker-wide parameters
+    # @param (see Preparer#initialize)
+    # @return [void]
 
     def prepare(workflow, samples, params = {})
       Preparer.new(workflow, samples, params)
     end
 
     ##
+    # Apply a block to a list of workers.
     #
+    # @param workers [Array<DB::Worker>, DB::Worker] a list of workers or a
+    #   single worker
+    # @return [Array<DB::Worker>] the list of workers given in arguments,
+    #   with modified states
 
     def distribute(workers, &block)
       workers = [workers] if workers.is_a? DB::Worker
@@ -37,7 +40,8 @@ module Ripe
     ##
     # Run worker job code into bash locally.
     #
-    # @param workers [Array] a list of workers
+    # @param (see #distribute)
+    # @return (see #distribute)
 
     def local(workers)
       distribute workers do |worker|
@@ -48,7 +52,8 @@ module Ripe
     ##
     # Submit worker jobs to the compute cluster system.
     #
-    # @param workers [Array] a list of workers
+    # @param (see #distribute)
+    # @return (see #distribute)
 
     def start(workers)
       distribute workers do |worker|
@@ -64,7 +69,8 @@ module Ripe
     ##
     # Cancel worker jobs in the compute cluster system.
     #
-    # @param workers [Array] a list of workers
+    # @param (see #distribute)
+    # @return (see #distribute)
 
     def cancel(workers)
       distribute workers do |worker|
@@ -81,22 +87,27 @@ module Ripe
     # Synchronize the status of jobs with the internal list of workers.
     #
     # @see Ripe::WorkerController::Syncer
+    #
+    # @return [Array<DB::Worker>] the list of updated workers
 
     def sync
-      Syncer.new
+      Syncer.new.workers
     end
 
     ##
-    # List the n most recent workers
+    # List the n most recent workers.
     #
-    # @param n [Integer] the number of most recent workers to keep
+    # @param n [Integer] the number of most recent workers
+    # @return [Array<DB::Worker>] the list of +n+ most recent workers
 
     def list(n = 20)
       DB::Worker.last(n)
     end
 
     ##
-    # Launch the an interactive text editor from the console
+    # Launch the an interactive text editor from the console.
+    #
+    # @return [void]
 
     def edit(*args)
       system("$EDITOR #{args.join(' ')}")
