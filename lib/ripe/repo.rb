@@ -9,8 +9,11 @@ module Ripe
   # instantiates:
   #
   # * a database that contains all worker metadata; and
-  # * a controller that communicates the database with the compute cluster
-  #   interface.
+  # * a controller that communicates with both the database and the compute
+  #   cluster interface.
+  #
+  # @attr_reader controller [WorkerController] a controller that communicates
+  #   with both the database and the computer cluster interface.
   #
   # @see Ripe::WorkerController
   # @see Ripe::Library
@@ -24,7 +27,7 @@ module Ripe
     attr_reader :controller
 
     ##
-    # Initialize a repository
+    # Initialize a repository.
 
     def initialize
       @has_repository = File.exists? DATABASE_PATH
@@ -32,7 +35,7 @@ module Ripe
     end
 
     ##
-    # Return whether the ripe repository exists
+    # Return whether the ripe repository exists.
     #
     # @return [Boolean] whether the repository exists
 
@@ -41,7 +44,7 @@ module Ripe
     end
 
     ##
-    # Attach to an existing database
+    # Attach to an existing database.
 
     def attach
       ActiveRecord::Base.establish_connection({
@@ -51,14 +54,15 @@ module Ripe
     end
 
     ##
-    # Attach to an existing database, and creates one if none is found.
+    # Attach to an existing database, and creates one if a database cannot be
+    # found.
 
     def attach_or_create
       @has_repository ? attach : create
     end
 
     ##
-    # Create a database
+    # Create a database.
 
     def create
       FileUtils.mkdir_p(REPOSITORY_PATH)
