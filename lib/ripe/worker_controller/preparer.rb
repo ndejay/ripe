@@ -7,10 +7,14 @@ module Ripe
     # samples and parameters.  It applies the workflow to each of the specified
     # samples.
     #
+    # @attr workers [Array<Worker>] workers prepared in current batch
+    #
     # @see Ripe::DSL::WorkflowDSL#describe
     # @see Ripe::WorkerController#prepare
 
     class Preparer
+
+      attr_accessor :workers
 
       ##
       # Prepare workers by applying the workflow callback and its parameters to
@@ -34,7 +38,7 @@ module Ripe
 
         # Split samples into groups of +:group_num+ samples and produce a
         # worker from each of these groups.
-        sample_blocks.each_slice(params[:group_num].to_i).map do |worker_blocks|
+        @workers = sample_blocks.each_slice(params[:group_num].to_i).map do |worker_blocks|
           prepare_worker(worker_blocks, params)
         end
       end

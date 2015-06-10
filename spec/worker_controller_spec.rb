@@ -41,9 +41,11 @@ describe WorkerController do
 
     describe '#prepare' do
       it 'prepares workers' do
-        @controller.prepare 'foobar', @test.samples, pwd: @test.path, mode: :force
+        workers = @controller.prepare 'foobar', @test.samples, pwd: @test.path, mode: :force
         # Prepares workers 1-2-3
         expect(DB::Worker.all.length).to eql 3
+        # Returns the workers from the call to prepare
+        expect(workers).to eql DB::Worker.all.to_a
       end
 
       it 'prepares workers with accurate task scripts' do

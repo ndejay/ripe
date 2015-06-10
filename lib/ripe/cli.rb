@@ -73,6 +73,8 @@ module Ripe
       :desc => 'Workflow to be applied'
     option :options, :aliases => '-o', :type => :string, :required => false,
       :desc => 'Options', :default => ''
+    option :start, :aliases => '-s', :type => :boolean, :required => false,
+      :desc => 'Automatically submit the prepared jobs onto the compute cluster', :default => false
 
     ##
     # Prepare samples.
@@ -85,13 +87,15 @@ module Ripe
       repo.attach
 
       unless repo.has_repository?
-        abort "Cannot launch console: ripe repo not initialized"
+        abort 'Cannot launch console: ripe repo not initialized'
       end
 
-      abort "No samples specified." if (samples.length == 0)
+      abort 'No samples specified.' if samples.length == 0
 
-      repo.controller.prepare(options[:workflow], samples,
-                              Helper.parse_cli_opts(options[:options]))
+      workers = repo.controller.prepare(options[:workflow], samples,
+                                        Helper.parse_cli_opts(options[:options]))
+
+      repo.controller.start(workers) if options[:start]
     end
 
 

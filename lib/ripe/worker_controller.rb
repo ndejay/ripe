@@ -18,10 +18,10 @@ module Ripe
     # @see Ripe::WorkerController::Preparer
     #
     # @param (see Preparer#initialize)
-    # @return [void]
+    # @return [Array<Worker>] workers prepared in current batch
 
     def prepare(workflow, samples, params = {})
-      Preparer.new(workflow, samples, params)
+      Preparer.new(workflow, samples, params).workers
     end
 
     ##
