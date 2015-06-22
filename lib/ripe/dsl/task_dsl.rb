@@ -43,6 +43,8 @@ module Ripe
     ##
     # This class provides a DSL for defining a task.  It should only be called
     # by #task.
+    #
+    # @attr_reader params [Hash<Symbol, String>] list of parameters
 
     class TaskDSL
 

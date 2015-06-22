@@ -37,6 +37,11 @@ module Ripe
     ##
     # This class provides a DSL for defining a workflow.  It should only be
     # called by #workflow.
+    #
+    # @attr_reader handle [String] the name of the workflow
+    # @attr_reader params [Hash<Symbol, String>] list of parameters
+    # @attr_reader callback [Proc] the block describing what to do apply to
+    #   each sample
 
     class WorkflowDSL
 
