@@ -14,6 +14,8 @@ module Ripe
     class LiquidBlock < WorkingBlock
 
       ##
+      # Create a new, empty {LiquidBlock}.
+      #
       # @param filename [String] filename of the template file
       # @param vars [Hash<Symbol, String>] key-value pairs
 

@@ -17,6 +17,8 @@ module Ripe
     class MultiBlock < Block
 
       ##
+      # Create a new, empty {MultiBlock}.
+      #
       # @param id [String] a mandatory, but optionally unique identifier
       #   for the block
       # @param blocks [Array<Block>] list of children blocks

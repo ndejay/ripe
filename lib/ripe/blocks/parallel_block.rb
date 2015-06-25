@@ -9,6 +9,8 @@ module Ripe
     class ParallelBlock < MultiBlock
 
       ##
+      # Create a new, empty {ParallelBlock}.
+      #
       # @param blocks [Array<Block>] list of children blocks
 
       def initialize(*blocks)

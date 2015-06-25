@@ -12,6 +12,8 @@ module Ripe
     class WorkingBlock < Block
 
       ##
+      # Create a new, empty {WorkingBlock}.
+      #
       # @param filename [String] filename of the template file
       # @param vars [Hash<Symbol, String>] key-value pairs
 

@@ -9,6 +9,8 @@ module Ripe
     class SerialBlock < MultiBlock
 
       ##
+      # Create a new, empty {SerialBlock}.
+      #
       # @param blocks [Array<Block>] list of children blocks
 
       def initialize(*blocks)

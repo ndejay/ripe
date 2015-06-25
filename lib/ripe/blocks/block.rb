@@ -21,6 +21,8 @@ module Ripe
       attr_accessor :vars
 
       ##
+      # Create a new, empty {Block}.
+      #
       # @param id [String] a mandatory, but optionally unique identifier
       #   for the block
       # @param blocks [Array<Block>] list of children blocks
