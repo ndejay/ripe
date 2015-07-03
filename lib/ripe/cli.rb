@@ -87,7 +87,7 @@ module Ripe
       repo.attach
 
       unless repo.has_repository?
-        abort 'Cannot launch console: ripe repo not initialized'
+        abort 'Cannot prepare samples: ripe repo not initialized'
       end
 
       abort 'No samples specified.' if samples.length == 0
