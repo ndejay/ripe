@@ -108,6 +108,7 @@ module Ripe
             time:        stdout[/Resources:.*,walltime=([0-9]{1,2}(\:[0-9]{2})+)$/, 1],
             status:      :completed,
           })
+          worker
         end
       end
 
