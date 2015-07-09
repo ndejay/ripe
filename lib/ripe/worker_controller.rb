@@ -34,7 +34,10 @@ module Ripe
 
     def distribute(workers, &block)
       workers = [workers] if workers.is_a? DB::Worker
-      workers.map { |w| block.call(w) }
+      workers.map do |w|
+        block.call(w)
+        w
+      end
     end
 
     ##
