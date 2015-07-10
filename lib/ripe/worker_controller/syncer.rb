@@ -56,7 +56,7 @@ module Ripe
       # @return [void]
 
       def update_running_workers
-        @workers += @running_jobs.map do |job|
+        workers = @running_jobs.map do |job|
           worker = DB::Worker.find_by(moab_id: job[:moab_id])
           if worker
             worker.update(time: job[:time])
@@ -69,8 +69,10 @@ module Ripe
               })
             end
           end
-          worker
+          worker # This is +nil+ if worker is not found (other running jobs
+                 # that are independent from the current ripe repo).
         end
+        @workers += workers.compact
       end
 
       ##
