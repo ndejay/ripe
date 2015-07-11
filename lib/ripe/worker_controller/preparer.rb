@@ -36,10 +36,14 @@ module Ripe
         # Apply the workflow to each sample
         sample_blocks = prepare_sample_blocks(samples, callback, params)
 
-        # Split samples into groups of +:group_num+ samples and produce a
-        # worker from each of these groups.
-        @workers = sample_blocks.each_slice(params[:group_num].to_i).map do |worker_blocks|
-          prepare_worker(worker_blocks, params)
+        if sample_blocks
+          # Split samples into groups of +:group_num+ samples and produce a
+          # worker from each of these groups.
+          @workers = sample_blocks.each_slice(params[:group_num].to_i).map do |worker_blocks|
+            prepare_worker(worker_blocks, params)
+          end
+        else
+          []
         end
       end
 
@@ -80,8 +84,14 @@ module Ripe
 
       def prepare_sample_blocks(samples, callback, params)
         sample_blocks = samples.map do |sample|
-          block = callback.call(sample, params).prune(params[:mode].to_sym == :force,
-                                                      params[:mode].to_sym == :depend)
+          block = callback.call(sample, params)
+
+          if block
+            # No need to prune if callback returns nil
+            block = block.prune(params[:mode].to_sym == :force,
+                              params[:mode].to_sym == :depend)
+          end
+
           if block != nil
             puts "Preparing sample #{sample}"
             {sample => block}
