@@ -1,5 +1,5 @@
-dev
----
+v0.2.2
+------
 
 This release mostly contains console-related bugfixes.
 
