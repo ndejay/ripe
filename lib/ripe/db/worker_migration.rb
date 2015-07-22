@@ -24,6 +24,8 @@ module Ripe
           t.string  :time
           t.string  :status, default: :unprepared
           t.string  :walltime
+          t.string  :user
+          t.string  :project_name
         end
       end
 
