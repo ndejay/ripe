@@ -1,3 +1,8 @@
+HEAD
+----
+
+  - issue/6: Track project_name and user in the ripe metadata db.
+
 v0.2.2
 ------
 
