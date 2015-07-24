@@ -57,6 +57,18 @@ module Ripe
         FileUtils.rm_r dir if Dir.exists? dir
       end
 
+      # Automatically create accessors for `#status`.
+      #
+      #     worker.status == :prepared
+      #
+      # becomes
+      #
+      #     worker.prepared?
+
+      [:unprepared, :prepared, :queueing, :idle,
+       :blocked, :active, :cancelled, :completed].map do |s|
+        define_method("#{s}?") { status.to_s == s.to_s }
+      end
     end
 
   end

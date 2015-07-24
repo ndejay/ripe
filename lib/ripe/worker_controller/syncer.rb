@@ -90,8 +90,7 @@ module Ripe
 
         @completed_workers = running_workers.select do |worker|
           !running_job_ids.include?(worker.moab_id) &&
-            worker.status != 'cancelled' &&
-            worker.user == `whoami`.chomp
+            !worker.cancelled? && worker.user == `whoami`.chomp
         end
       end
 

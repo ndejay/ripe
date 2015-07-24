@@ -60,7 +60,7 @@ module Ripe
 
     def start(workers)
       distribute workers do |worker|
-        if worker.status == 'prepared'
+        if worker.prepared?
           worker.update(status: :queueing,
                         moab_id: `qsub '#{worker.sh}'`.strip.split(/\./).first)
         else

@@ -2,6 +2,7 @@ HEAD
 ----
 
   - issue/6: Track project_name and user in the ripe metadata db.
+  - Automatically create accessors for `DB::Worker#status`.
 
 v0.2.2
 ------
