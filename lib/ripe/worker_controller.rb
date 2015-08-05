@@ -48,7 +48,13 @@ module Ripe
 
     def local(workers)
       distribute workers do |worker|
+        worker.update(status: :active_local)
+
         `bash #{worker.sh}`
+        exit_code = $?.to_i
+
+        worker.update(status:    :completed,
+                      exit_code: exit_code)
       end
     end
 

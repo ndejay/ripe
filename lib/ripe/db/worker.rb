@@ -66,7 +66,7 @@ module Ripe
       #     worker.prepared?
 
       [:unprepared, :prepared, :queueing, :idle,
-       :blocked, :active, :cancelled, :completed].map do |s|
+       :blocked, :active, :active_local, :cancelled, :completed].map do |s|
         define_method("#{s}?") { status.to_s == s.to_s }
       end
     end
