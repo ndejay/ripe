@@ -1,7 +1,8 @@
 HEAD
 ----
 
-  - issue/6: Track project_name and user in the ripe metadata db.
+  - [ndejay/ripe#6](http://github.com/ndejay/ripe/issues/6): Track project_name and user in the ripe metadata db.
+  - Track status for workers started locally.
   - Automatically create accessors for `DB::Worker#status`.
 
 v0.2.2
