@@ -62,6 +62,15 @@ module Ripe
         [@id]
       end
 
+      ##
+      # Collect a list of classes derived from `WorkingBlock`.
+      #
+      # @return Array<Class>
+
+      def self.subclasses
+        ObjectSpace.each_object(Class).select { |klass| klass < self }
+      end
+
     end
 
   end
