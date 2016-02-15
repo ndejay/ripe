@@ -6,8 +6,7 @@ module Ripe
 
     ##
     # This class represents a working block that should be processed using the
-    # Liquid templating engine, rather than the simple +bash+ engine defined in
-    # {WorkingBlock}.
+    # Liquid templating engine.
     #
     # @see Ripe::Blocks::WorkingBlock
 

@@ -4,10 +4,15 @@ module Ripe
 
     ##
     # This class represents a {Ripe::CLI::TaskCLI} that has been parametrized.
-    # In the block arborescence, {WorkingBlock}s are always leaf nodes.
+    # In the block arborescence, {WorkingBlock}s are always leaf nodes and therefore
+    # contain scripts to be executed.
+    #
+    # In order version of ripe (<= 0.2.1), {WorkingBlock} and {BashBlock} were
+    # considered the same entity.
     #
     # @see Ripe::CLI::TaskCLI
     # @see Ripe::WorkerController::Preparer#prepare
+    # @see Ripe::Blocks::BashBlock
 
     class WorkingBlock < Block
 
@@ -20,45 +25,6 @@ module Ripe
       def initialize(filename, vars = {})
         @filename = filename
         super(File.basename(@filename), [], vars)
-      end
-
-      ##
-      # Return working block +parameters+ as a sequence of bash variable
-      # assignments.
-      #
-      # @return [String] sequence of bash variable assignments
-
-      def declarations
-        vars.map do |key, value|
-          lh = key.upcase
-          rh = value.is_a?(Array) ? "(\"#{value.join("\" \"")}\")" : "\"#{value}\""
-          "#{lh}=#{rh}"
-        end
-      end
-
-      ##
-      # (see Block#command)
-      #
-      # The resulting string contains the result of the application of
-      # parameters to the +task+ from which the {WorkingBlock} was defined.
-      #
-      # @see Ripe::DB::Task
-      # @see Ripe::DSL::TaskDSL
-
-      def command
-        <<-EOF.gsub(/^[ ]+/, '')
-
-        # <#{id}>
-
-        #{declarations.join("\n")}
-
-        exec 1>"$LOG" 2>&1
-
-        #{File.new(@filename).read}
-        echo "##.DONE.##"
-
-        # </#{id}>
-        EOF
       end
 
       ##
