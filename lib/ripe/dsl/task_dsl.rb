@@ -37,14 +37,20 @@ module Ripe
     # @return [WorkingBlock, nil]
 
     def task(handle, vars = {type: 'bash'}, &block)
-      filename = Library.find(:task, handle)
-      abort "Could not find task #{handle}." if filename == nil
+      # Obtain list of `WorkingBlock` types.
+      working_block = Blocks::WorkingBlock.subclasses.select { |k| k.id == vars[:type] }.first
+
+      filename = "#{handle}.#{working_block.extension}"
+      full_filename = Library.find(:task, filename)
+
+      if full_filename == nil
+        abort "Could not find task `#{filename}`."
+      # else
+      #   puts "Found task `#{handle}` @ `#{full_filename}`."
+      end
 
       params = TaskDSL.new(handle, &block).params
-      subclasses = Blocks::WorkingBlock.subclasses
-      subclass_map = Hash[subclasses.map { |klass| klass.to_s.downcase.split(/::/).pop.sub(/block$/, '').to_sym }.zip(subclasses)]
-      type_class_map = { bash: Blocks::BashBlock }.merge(subclass_map)
-      type_class_map[vars[:type].downcase.to_sym].new(filename, params)
+      working_block.new(full_filename, params)
     end
 
     ##

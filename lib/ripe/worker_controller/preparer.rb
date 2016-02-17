@@ -56,7 +56,7 @@ module Ripe
       #   and default params
 
       def load_workflow(workflow, params)
-        filename = Library.find(:workflow, workflow)
+        filename = Library.find(:workflow, "#{workflow}.rb")
         abort "Could not find workflow #{workflow}." if filename == nil
         require_relative filename
 

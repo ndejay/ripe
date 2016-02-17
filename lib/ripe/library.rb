@@ -27,17 +27,14 @@ module Ripe
       #
       # @param comp [Symbol] Type of component: either +:workflow+ or
       #   +:task+.
-      # @param handle [String] Name of component
+      # @param filename [String] Filename of component
       # @return [String, nil] Full path of the component if found, and +nil+
       #   otherwise.
  
-      def find(comp, handle)
-        ext = { task:     'sh',
-                workflow: 'rb' }
-
+      def find(comp, filename)
         search = paths.map do |path|
-          filename = "#{path}/#{comp}s/#{handle}.#{ext[comp]}"
-          (File.exists? filename) ? filename : nil
+          file = "#{path}/#{comp}s/#{filename}"
+          (File.exists? file) ? file : nil
         end
 
         search.compact.first

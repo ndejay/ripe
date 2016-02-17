@@ -42,6 +42,28 @@ module Ripe
         template.render(declarations)
       end
 
+      ##
+      # Return string handle for referring to this type of `WorkingBlock`.
+      #
+      # @see Ripe::DSL::TaskDSL
+      #
+      # @return [String]
+      
+      def self.id
+        'liquid'
+      end
+
+      ##
+      # Return expected file extension type for this type of `WorkingBlock`.
+      #
+      # @see Ripe::DSL::TaskDSL
+      #
+      # @return [String]
+
+      def self.extension
+        'sh.liquid'
+      end
+
     end
 
   end
