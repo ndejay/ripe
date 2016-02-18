@@ -165,8 +165,9 @@ module Ripe
                 block:  subblock.id,
               })
 
-              File.open(task.sh, 'w') { |f| f.write(subblock.command) }
               subblock.vars.merge!(log: task.log)
+              File.open(task.sh, 'w') { |f| f.write(subblock.command) }
+              subblock.vars
             else
               subblock.blocks.each(&post_var_assign)
             end
