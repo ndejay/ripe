@@ -18,6 +18,12 @@ workflow 'foobar' do
       param :output_bar,  "#{sample}/bar_output.txt"
     end
 
-    foo + bar
+    foo_erb = task 'foo', type: 'erb' do
+      param :input_foo,   "#{sample}/foo_input.txt"
+      param :foo_message, 'For You'
+      param :output_foo,  "#{sample}/foo_erb_output.txt"
+    end
+
+    foo + (bar | foo_erb)
   end
 end
