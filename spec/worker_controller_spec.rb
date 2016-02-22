@@ -6,7 +6,7 @@ require 'digest'
 require 'fileutils'
 
 def signature(file)
-  Digest::MD5.hexdigest(File.read(file))
+  Digest::MD5.hexdigest(File.read(file).gsub(/LOG=.*\n/, '').gsub(/exec 1>".*\n/, '') )
 end
 
 describe WorkerController do
@@ -64,8 +64,8 @@ describe WorkerController do
         ref_tasks = DB::Worker.find(1).tasks
         test_tasks = DB::Worker.find(4).tasks
 
-        expect(ref_tasks.length).to eql 2
-        expect(test_tasks.length).to eql 2
+        expect(ref_tasks.length).to eql 3
+        expect(test_tasks.length).to eql 3
 
         ref_tasks.zip(test_tasks).map do |ref, test|
           ref_hash = signature(ref.sh)
@@ -86,7 +86,7 @@ describe WorkerController do
         ref_tasks = DB::Worker.find(1).tasks
         test_tasks = DB::Worker.find(5).tasks
 
-        expect(ref_tasks.length).to eql 2
+        expect(ref_tasks.length).to eql 3
         expect(test_tasks.length).to eql 1
 
         ref_hash = signature(ref_tasks.first.sh)
@@ -107,8 +107,8 @@ describe WorkerController do
         ref_tasks = DB::Worker.find(2).tasks
         test_tasks = DB::Worker.find(6).tasks
 
-        expect(ref_tasks.length).to eql 2
-        expect(test_tasks.length).to eql 2
+        expect(ref_tasks.length).to eql 3
+        expect(test_tasks.length).to eql 3
 
         ref_tasks.zip(test_tasks).map do |ref, test|
           ref_hash = signature(ref.sh)

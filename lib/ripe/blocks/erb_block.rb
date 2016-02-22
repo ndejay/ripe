@@ -1,4 +1,4 @@
-require 'liquid'
+require 'erb'
 
 module Ripe
 
@@ -6,12 +6,20 @@ module Ripe
 
     ##
     # This class represents a working block that should be processed using the
-    # Liquid templating engine.
+    # ERB templating system.
     #
-    # @see Ripe::Blocks::WorkingBlock
+    # Keys defined as:
+    #
+    #     vars["some_key"] = "value"
+    #
+    # can be substituted in the ERB template using:
+    #
+    #     <%= vars.some_key %>
+    #
+    # @see Ripe::Blocks::ERBBlock
 
-    class LiquidBlock < WorkingBlock
-
+    class ERBBlock < WorkingBlock
+      #
       ##
       # Create a new, empty {LiquidBlock}.
       #
@@ -23,23 +31,33 @@ module Ripe
       end
 
       ##
-      # Return liquid block +parameters+ as a +Hash<Symbol, Object>+.
-      #
-      # @return [Hash<Symbol, Object>] liquid block +parameters+
-
-      def declarations
-        @vars.inject({}) { |memo, (k, v)| memo[k.to_s] = v; memo }
-      end
-
-      ##
       # (see Block#command)
       #
       # The resulting string contains the render result of the liquid template
       # based on the parameters specified in +vars+.
 
       def command
-        template = Liquid::Template.parse(File.new(@filename).read)
-        template.render(declarations)
+        vars = @vars
+        vars.define_singleton_method(:get_binding) { binding } # Expose private method
+        vars.define_singleton_method(:method_missing) do |name|
+          return self[name] if key? name
+          self.each { |k,v| return v if k.to_s.to_sym == name }
+          # super.method_missing name
+        end
+
+        template = <<-EOF.gsub(/^[ ]+/, '')
+
+        # <#{id}>
+
+        exec 1>"<%= vars.log %>" 2>&1
+
+        #{File.new(@filename).read}
+        echo "##.DONE.##"
+
+        # </#{id}>
+        EOF
+
+        ERB.new(template).result(vars.get_binding)
       end
 
       ##
@@ -48,9 +66,9 @@ module Ripe
       # @see Ripe::DSL::TaskDSL
       #
       # @return [String]
-      
+
       def self.id
-        'liquid'
+        'erb'
       end
 
       ##
@@ -61,7 +79,7 @@ module Ripe
       # @return [String]
 
       def self.extension
-        'sh.liquid'
+        'sh.erb'
       end
 
     end

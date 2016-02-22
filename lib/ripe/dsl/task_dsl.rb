@@ -22,6 +22,10 @@ module Ripe
     #      t.param :param2, 'val2'
     #    end
     #
+    #    foo = task 'foo', task: 'bash' do |t|
+    #      t.param :param1, 'val1'
+    #    end
+    #
     # It internally uses +Ripe::DSL::TaskDSL+ to provide the DSL.
     #
     # @see Ripe::DSL::TaskDSL
@@ -32,12 +36,21 @@ module Ripe
     # @param block [Proc] executes block in the context of +TaskDSL+
     # @return [WorkingBlock, nil]
 
-    def task(handle, &block)
-      filename = Library.find(:task, handle)
-      abort "Could not find task #{handle}." if filename == nil
+    def task(handle, vars = {type: 'bash'}, &block)
+      # Obtain list of `WorkingBlock` types.
+      working_block = Blocks::WorkingBlock.subclasses.select { |k| k.id == vars[:type] }.first
+
+      filename = "#{handle}.#{working_block.extension}"
+      full_filename = Library.find(:task, filename)
+
+      if full_filename == nil
+        abort "Could not find task `#{filename}`."
+      # else
+      #   puts "Found task `#{handle}` @ `#{full_filename}`."
+      end
 
       params = TaskDSL.new(handle, &block).params
-      Blocks::WorkingBlock.new(filename, params)
+      working_block.new(full_filename, params)
     end
 
     ##

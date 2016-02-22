@@ -1,16 +1,17 @@
 
-# <bar.sh>
+# <foo.sh>
 
-INPUT_BAR="Sample2/foo_input.txt"
-BAR_MESSAGE="Bar"
-OUTPUT_BAR="Sample2/bar_output.txt"
+INPUT_FOO="Sample2/foo_input.txt"
+FOO_MESSAGE="For You"
+OUTPUT_FOO="Sample2/foo_output.txt"
+LOG=".ripe/workers/2/4.log"
 
 exec 1>"$LOG" 2>&1
 
-# Bar is the most important consequence of Foo.
+# Foo is certainly one of the most important prerequisites to Bar.
 
-echo "$(cut -d' ' -f1 "$INPUT_BAR") $BAR_MESSAGE" > "$OUTPUT_BAR"
+echo "$(cat "$INPUT_FOO") $FOO_MESSAGE" > "$OUTPUT_FOO"
 
 echo "##.DONE.##"
 
-# </bar.sh>
+# </foo.sh>

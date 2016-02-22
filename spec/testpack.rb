@@ -8,6 +8,7 @@ module Ripe
       @tasks = {
         'foo' => "#{@lib_path}/tasks/foo.sh",
         'bar' => "#{@lib_path}/tasks/bar.sh",
+        'foo_erb' => "#{@lib_path}/tasks/foo_erb.sh"
       }
       @workflows = {
         'foobar' => "#{@lib_path}/workflows/foobar.rb",
@@ -20,7 +21,8 @@ module Ripe
       @steps = [
         'foo_input.txt',
         'foo_output.txt',
-        'bar_output.txt'
+        'bar_output.txt',
+        'foo_erb_output.txt'
       ]
     end
   end

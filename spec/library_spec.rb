@@ -12,9 +12,9 @@ describe Library do
     end
 
     it 'cannot resolve components of the test library' do
-      expect(@library.find(:task, 'foo')).to eql nil
-      expect(@library.find(:task, 'bar')).to eql nil
-      expect(@library.find(:workflow, 'foobar')).to eql nil
+      expect(@library.find(:task, 'foo.sh')).to eql nil
+      expect(@library.find(:task, 'bar.sh')).to eql nil
+      expect(@library.find(:workflow, 'foobar.rb')).to eql nil
     end
   end
 
@@ -37,17 +37,17 @@ describe Library do
     end
 
     it 'resolves task components of the test library' do
-      expect(@library.find(:task, 'foo')).to eql @test.tasks['foo']
-      expect(@library.find(:task, 'bar')).to eql @test.tasks['bar']
+      expect(@library.find(:task, 'foo.sh')).to eql @test.tasks['foo']
+      expect(@library.find(:task, 'bar.sh')).to eql @test.tasks['bar']
     end
 
     it 'resolves workflows components of the test library' do
-      expect(@library.find(:workflow, 'foobar')).to eql @test.workflows['foobar']
+      expect(@library.find(:workflow, 'foobar.rb')).to eql @test.workflows['foobar']
     end
 
-    it 'cannot resolve non-existing componenets' do
-      expect(@library.find(:task, 'other')).to eql nil
-      expect(@library.find(:workflow, 'other')).to eql nil
+    it 'cannot resolve non-existing components' do
+      expect(@library.find(:task, 'other.sh')).to eql nil
+      expect(@library.find(:workflow, 'other.rb')).to eql nil
     end
   end
 end

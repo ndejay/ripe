@@ -1,9 +1,10 @@
 
 # <bar.sh>
 
-INPUT_BAR="Sample3/foo_input.txt"
+INPUT_BAR="Sample2/foo_input.txt"
 BAR_MESSAGE="Bar"
-OUTPUT_BAR="Sample3/bar_output.txt"
+OUTPUT_BAR="Sample2/bar_output.txt"
+LOG=".ripe/workers/2/5.log"
 
 exec 1>"$LOG" 2>&1
 
