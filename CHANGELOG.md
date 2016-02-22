@@ -1,6 +1,7 @@
 HEAD
 ----
 
+  - [ndejay/ripe#8](http://github.com/ndejay/ripe/issues/8): Support ERB task templates.
   - [ndejay/ripe#6](http://github.com/ndejay/ripe/issues/6): Track project_name and user in the ripe metadata db.
   - Track status for workers started locally.
   - Automatically create accessors for `DB::Worker#status`.
