@@ -11,4 +11,20 @@ describe CLI do
       expect(test_hash_opts).to eql ref_hash_opts
     end
   end
+
+  describe '::Helper#parse_config' do
+    it 'parses json file info symbolized hash' do
+      file = Tempfile.new("json")
+      begin
+        file.write("{\"a\": 1, \"b\": 2, \"c\": \"bob\"}")
+        file.rewind
+        test_hash_config = CLI::Helper.parse_config(file.path)
+        ref_hash_config = {:a=>1, :b=>2, :c=>"bob"}
+        expect(test_hash_config).to eql ref_hash_config
+      ensure
+        file.close
+      end
+
+    end
+  end
 end
