@@ -1,6 +1,7 @@
 HEAD
 ----
 
+  - [ndejay/ripe#13](http://github.com/ndejay/ripe/issues/13): Change the permissions of the database to the same as the user's umask.
   - [ndejay/ripe#10](http://github.com/ndejay/ripe/issues/10): Support config file for workflows.
   - [ndejay/ripe#8](http://github.com/ndejay/ripe/issues/8): Support ERB task templates.
   - [ndejay/ripe#6](http://github.com/ndejay/ripe/issues/6): Track project_name and user in the ripe metadata db.

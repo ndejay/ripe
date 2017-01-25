@@ -74,6 +74,9 @@ module Ripe
         # Create the tables
         DB::WorkerMigration.up
         DB::TaskMigration.up
+
+        # Set the database's permissions to the user's umask
+        FileUtils.chmod(0666 - File.umask(), DATABASE_PATH)
       rescue
         destroy
       end
