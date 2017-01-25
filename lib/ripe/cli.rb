@@ -71,6 +71,8 @@ module Ripe
     desc 'prepare SAMPLES', 'Prepare jobs from template workflow'
     option :workflow, :aliases => '-w', :type => :string, :required => true,
       :desc => 'Workflow to be applied'
+    option :config, :aliases => '-c', :type => :string, :required => false,
+      :desc => 'Config file for workflows.'
     option :options, :aliases => '-o', :type => :string, :required => false,
       :desc => 'Options', :default => ''
     option :start, :aliases => '-s', :type => :boolean, :required => false,
@@ -92,8 +94,11 @@ module Ripe
 
       abort 'No samples specified.' if samples.length == 0
 
-      workers = repo.controller.prepare(options[:workflow], samples,
-                                        Helper.parse_cli_opts(options[:options]))
+      config = options[:config] ? Helper.parse_config(options[:config]) : {}
+      workflow_options = config[options[:workflow].to_sym] ||= {}
+      workflow_options.merge!(Helper.parse_cli_opts(options[:options]))
+
+      workers = repo.controller.prepare(options[:workflow], samples, workflow_options)
 
       repo.controller.start(workers) if options[:start]
     end
