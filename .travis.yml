@@ -1,7 +1,6 @@
 language: ruby
 rvm:
-  - ruby-2.1.5
-  - ruby-2.2.0
+  - ruby-2.4.0
   - ruby-head
 cache: bundler
 script: bundle exec rake spec
