@@ -1,5 +1,4 @@
 require_relative 'worker_controller/preparer'
-require_relative 'worker_controller/syncer'
 
 module Ripe
 
@@ -56,51 +55,6 @@ module Ripe
         worker.update(status:    :completed,
                       exit_code: exit_code)
       end
-    end
-
-    ##
-    # Submit worker jobs to the compute cluster system.
-    #
-    # @param (see #distribute)
-    # @return (see #distribute)
-
-    def start(workers)
-      distribute workers do |worker|
-        if worker.prepared?
-          worker.update(status: :queueing,
-                        moab_id: `qsub '#{worker.sh}'`.strip.split(/\./).first)
-        else
-          puts "Worker #{worker.id} could not be started: not prepared"
-        end
-      end
-    end
-
-    ##
-    # Cancel worker jobs in the compute cluster system.
-    #
-    # @param (see #distribute)
-    # @return (see #distribute)
-
-    def cancel(workers)
-      distribute workers do |worker|
-        if ['queueing', 'idle', 'blocked', 'active'].include? worker.status
-          `canceljob #{worker.moab_id}`
-          worker.update(status: :cancelled)
-        else
-          puts "Worker #{worker.id} could not be cancelled: not started"
-        end
-      end
-    end
-
-    ##
-    # Synchronize the status of jobs with the internal list of workers.
-    #
-    # @see Ripe::WorkerController::Syncer
-    #
-    # @return [Array<DB::Worker>] the list of updated workers
-
-    def sync
-      Syncer.new.workers
     end
 
     ##

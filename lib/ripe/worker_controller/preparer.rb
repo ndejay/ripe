@@ -130,15 +130,6 @@ module Ripe
         worker_block = Blocks::LiquidBlock.new("#{PATH}/share/moab.sh", params)
         File.open(worker.sh, 'w') { |f| f.write(worker_block.command) }
 
-        worker.update({
-          status:       :prepared,
-          ppn:          params[:ppn],
-          queue:        params[:queue],
-          walltime:     params[:walltime],
-          user:         `whoami`.chomp,
-          project_name: params[:project_name],
-        })
-
         worker
       end
 

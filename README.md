@@ -5,16 +5,8 @@
 [![Test Coverage](https://codeclimate.com/github/ndejay/ripe/badges/coverage.svg)](https://codeclimate.com/github/ndejay/ripe)
 [![Inline docs](http://inch-ci.org/github/ndejay/ripe.svg?branch=master)](http://inch-ci.org/github/ndejay/ripe)
 
-ripe is an abstraction layer between the MOAB/Torque stack and your pipeline.
-
-With ripe, you can easily collate tasks into workflows which can then be
-applied to samples without the headache of manually dealing with the queuing
-system.
-
-Notes:
-
-- MOAB is a scheduler -- it takes care of priorities and allocations.
-- Torque is a resource manager -- it launches the jobs on the nodes.
+ripe provides a Ruby-based DSL for pipeline job creation.  With ripe, you can easily collate tasks
+into workflows which can then be applied to samples.
 
 ## Installation
 

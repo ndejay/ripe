@@ -75,8 +75,6 @@ module Ripe
       :desc => 'Config file for workflows.'
     option :options, :aliases => '-o', :type => :string, :required => false,
       :desc => 'Options', :default => ''
-    option :start, :aliases => '-s', :type => :boolean, :required => false,
-      :desc => 'Automatically submit the prepared jobs onto the compute cluster', :default => false
 
     ##
     # Prepare samples.
@@ -99,8 +97,6 @@ module Ripe
       workflow_options.merge!(Helper.parse_cli_opts(options[:options]))
 
       workers = repo.controller.prepare(options[:workflow], samples, workflow_options)
-
-      repo.controller.start(workers) if options[:start]
     end
 
 

@@ -129,15 +129,6 @@ describe WorkerController do
         end
       end
 
-      describe '#sync' do
-        it 'does not affected unprepared workers' do
-          before_statuses = DB::Worker.where(status: :prepared).map(&:id)
-          @controller.sync
-          after_statuses = DB::Worker.where(status: :prepared).map(&:id)
-
-          expect(after_statuses).to eql before_statuses
-        end
-      end
     end
   end
 end
