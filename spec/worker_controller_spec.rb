@@ -4,6 +4,7 @@ include Ripe::DSL # required by dirty hack +WorkerController#prepare+
 
 require 'digest'
 require 'fileutils'
+require 'tempfile'
 
 def signature(file)
   Digest::MD5.hexdigest(File.read(file).gsub(/LOG=.*\n/, '').gsub(/exec 1>".*\n/, '') )
@@ -22,8 +23,6 @@ describe WorkerController do
       @repo = Repo.new
       @repo.attach_or_create
       @library = Library
-      @controller = @repo.controller
-
       @test.samples.each do |sample|
         FileUtils.mkdir_p(sample)
         @test.steps.each do |step|
@@ -41,7 +40,7 @@ describe WorkerController do
 
     describe '#prepare' do
       it 'prepares workers' do
-        workers = @controller.prepare 'foobar', @test.samples, pwd: @test.path, mode: :force
+        workers = WorkerController.new('foobar', @test.samples, pwd: @test.path, mode: :force).workers
         # Prepares workers 1-2-3
         expect(DB::Worker.all.length).to eql 3
         # Returns the workers from the call to prepare
@@ -59,7 +58,7 @@ describe WorkerController do
       it 'properly prepares workers in force mode' do
         sample = @test.samples[0]
 
-        @controller.prepare 'foobar', [sample], pwd: @test.path, mode: :force
+        WorkerController.new 'foobar', [sample], pwd: @test.path, mode: :force
 
         ref_tasks = DB::Worker.find(1).tasks
         test_tasks = DB::Worker.find(4).tasks
@@ -81,7 +80,7 @@ describe WorkerController do
         # Delete the first output
         FileUtils.rm_r("#{sample}/#{step}")
 
-        @controller.prepare 'foobar', [sample], pwd: @test.path, mode: :patch
+        WorkerController.new 'foobar', [sample], pwd: @test.path, mode: :patch
 
         ref_tasks = DB::Worker.find(1).tasks
         test_tasks = DB::Worker.find(5).tasks
@@ -102,7 +101,7 @@ describe WorkerController do
         # Delete the first output
         FileUtils.rm_r("#{sample}/#{step}")
 
-        @controller.prepare 'foobar', [sample], pwd: @test.path, mode: :depend
+        WorkerController.new 'foobar', [sample], pwd: @test.path, mode: :depend
 
         ref_tasks = DB::Worker.find(2).tasks
         test_tasks = DB::Worker.find(6).tasks
@@ -120,7 +119,7 @@ describe WorkerController do
       describe '#local' do
         it 'runs worker jobs locally' do
           worker = DB::Worker.find(1)
-          @controller.local worker
+          `bash #{worker.sh}`
           @test.steps.map do |step|
             test_hash = signature("#{@test.samples[0]}/#{step}")
             ref_hash = signature("#{@test.path}/#{@test.samples[0]}/#{step}")

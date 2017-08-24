@@ -6,7 +6,7 @@ module Ripe
     # This class creates and destroys the +Worker+ model in the internal
     # database.
 
-    class WorkerMigration < ActiveRecord::Migration
+    class WorkerMigration < ActiveRecord::Migration[4.2]
 
       ##
       # Create model in database.

@@ -61,7 +61,7 @@ module Ripe
       end
 
       # Launch the REPL session in the context of +WorkerController+.
-      Ripl.start :binding => repo.controller.instance_eval { binding }
+      # Ripl.start :binding => repo.controller.instance_eval { binding }
     end
 
 
@@ -75,6 +75,8 @@ module Ripe
       :desc => 'Config file for workflows.'
     option :options, :aliases => '-o', :type => :string, :required => false,
       :desc => 'Options', :default => ''
+    option :prefix, :aliases => '-p', :type => :string, :required => true,
+      :desc => 'Output prefix', :default => 'out_'
 
     ##
     # Prepare samples.
@@ -96,7 +98,7 @@ module Ripe
       workflow_options = config[options[:workflow].to_sym] ||= {}
       workflow_options.merge!(Helper.parse_cli_opts(options[:options]))
 
-      workers = repo.controller.prepare(options[:workflow], samples, workflow_options)
+      workers = WorkerController.new(options[:workflow], samples, workflow_options).workers
     end
 
 

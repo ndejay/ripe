@@ -12,7 +12,7 @@ module Ripe
     # @attr_reader blocks [Array<Block>] list of children blocks
     # @attr vars [Hash<Symbol, String>] key-value pairs
     #
-    # @see Ripe::WorkerController::Preparer
+    # @see Ripe::WorkerController
 
     class Block
 

@@ -24,14 +24,11 @@ module Ripe
     DATABASE_PATH   = "#{REPOSITORY_PATH}/meta.db"
     WORKERS_PATH    = "#{REPOSITORY_PATH}/workers"
 
-    attr_reader :controller
-
     ##
     # Initialize a repository.
 
     def initialize
       @has_repository = File.exists? DATABASE_PATH
-      @controller     = WorkerController.new
     end
 
     ##

@@ -6,7 +6,7 @@ module Ripe
     # This class creates and destroys the +Task+ model in the internal
     # database.
 
-    class TaskMigration < ActiveRecord::Migration
+    class TaskMigration < ActiveRecord::Migration[4.2]
 
       ##
       # Create model in database.

@@ -1,79 +1,169 @@
-require_relative 'worker_controller/preparer'
-
 module Ripe
 
   ##
-  # This class controls workers as well as their relationship with regards to
-  # the compute cluster: worker preparation, submission, cancellation as well
-  # as sync.
+  # This class controls worker preparation from a given workflow, list of
+  # samples and parameters.  It applies the workflow to each of the specified
+  # samples.
+  #
+  # @attr workers [Array<Worker>] workers prepared in current batch
+  #
+  # @see Ripe::DSL::WorkflowDSL#describe
 
   class WorkerController
+
+    attr_accessor :workers
 
     ##
     # Prepare workers by applying the workflow callback and its parameters to
     # each sample.
     #
-    # @see Ripe::DSL::WorkflowDSL#describe
-    # @see Ripe::WorkerController::Preparer
-    #
-    # @param (see Preparer#initialize)
-    # @return [Array<Worker>] workers prepared in current batch
+    # @param workflow [String] the name of a workflow to apply on the sample
+    #   list
+    # @param samples [Array<String>] list of samples to apply the callback to
+    # @param params [Hash<Symbol, String>] a list of worker-wide parameters
 
-    def prepare(workflow, samples, params = {})
-      Preparer.new(workflow, samples, params).workers
-    end
+    def initialize(workflow, samples, params = {})
+      # Extract callback and params from input
+      callback, params = load_workflow(workflow, params)
 
-    ##
-    # Apply a block to a list of workers.
-    #
-    # @param workers [Array<DB::Worker>, DB::Worker] a list of workers or a
-    #   single worker
-    # @return [Array<DB::Worker>] the list of workers given in arguments,
-    #   with modified states
+      if ![:patch, :force, :depend].include?(params[:mode].to_sym)
+        abort "Invalid mode #{params[:mode]}."
+      end
 
-    def distribute(workers, &block)
-      workers = [workers] if workers.is_a? DB::Worker
-      workers.map do |w|
-        block.call(w)
-        w
+      # Apply the workflow to each sample
+      sample_blocks = prepare_sample_blocks(samples, callback, params)
+
+      if sample_blocks
+        # Split samples into groups of +:group_num+ samples and produce a
+        # worker from each of these groups.
+        @workers = sample_blocks.each_slice(params[:group_num].to_i).map do |worker_blocks|
+          prepare_worker(worker_blocks, params)
+        end
+      else
+        []
       end
     end
 
     ##
-    # Run worker job code into bash locally.
+    # Load a workflow and return its +callback+ and +params+ components.
     #
-    # @param (see #distribute)
-    # @return (see #distribute)
+    # @param workflow [String] the name of a workflow
+    # @param params [Hash<Symbol, String>] a list of worker-wide parameters
+    # @return [Proc, Hash<Symbol, String>] a list containing the workflow callback
+    #   and default params
 
-    def local(workers)
-      distribute workers do |worker|
-        worker.update(status: :active_local)
+    def load_workflow(workflow, params)
+      filename = Library.find(:workflow, "#{workflow}.rb")
+      abort "Could not find workflow #{workflow}." if filename == nil
+      require_relative filename
 
-        `bash #{worker.sh}`
-        exit_code = $?.to_i
+      # Imports +$workflow+ from the workflow component.  This is a dirty
+      # hack to help make the +DSL::WorkflowDSL+ more convenient for the
+      # end user.
 
-        worker.update(status:    :completed,
-                      exit_code: exit_code)
+      params = {
+        wd:        Dir.pwd,
+        mode:      :patch,
+        group_num: 1,
+      }.merge($workflow.params.merge(params))
+
+      [$workflow.callback, params]
+    end
+
+    ##
+    # Apply the workflow (callback) to each sample, producing a single root
+    # block per sample.
+    #
+    # @param samples [Array<String>] a list of samples
+    # @param callback [Proc] workflow callback to be applied to each sample
+    # @param params [Hash] a list of worker-wide parameters
+    # @return [Hash] a +{sample => block}+ hash
+
+    def prepare_sample_blocks(samples, callback, params)
+      sample_blocks = samples.map do |sample|
+        block = callback.call(sample, params)
+
+        if block
+          # No need to prune if callback returns nil
+          block = block.prune(params[:mode].to_sym == :force,
+                              params[:mode].to_sym == :depend)
+        end
+
+        if block != nil
+          puts "Preparing sample #{sample}"
+          {sample => block}
+        else
+          puts "Nothing to do for sample #{sample}"
+          nil
+        end
       end
+
+      # Produce a {sample => block} hash
+      sample_blocks.compact.inject(&:merge)
     end
 
     ##
-    # List the n most recent workers.
+    # Prepare a worker from a group of sample blocks.
     #
-    # @param n [Integer] the number of most recent workers
-    # @return [Array<DB::Worker>] the list of +n+ most recent workers
+    # @param worker_sample_blocks [Hash] a list containing as many elements
+    #   as there are samples in the group, with each element containing
+    #   +[String, Blocks::Block]+
+    # @param params [Hash] worker-level parameter list
+    # @return [DB::Worker] worker
 
-    def list(n = 20)
-      DB::Worker.last(n)
+    def prepare_worker(worker_sample_blocks, params)
+      worker = DB::Worker.create(handle: params[:handle])
+      worker_blocks = prepare_worker_blocks(worker_sample_blocks, worker)
+
+      # Combine all grouped sample blocks into a single worker block
+
+      params = params.merge({
+        name:    worker.id,
+        stdout:  worker.stdout,
+        stderr:  worker.stderr,
+        command: Blocks::SerialBlock.new(*worker_blocks).command,
+      })
+
+      worker_block = Blocks::LiquidBlock.new("#{PATH}/share/moab.sh", params)
+      File.open(worker.sh, 'w') { |f| f.write(worker_block.command) }
+
+      worker
     end
 
     ##
-    # Launch the an interactive text editor from the console.
+    # Organize worker blocks into tasks and prepare them.
     #
-    # @return [void]
+    # @param worker_sample_blocks [Array<Hash<String, Blocks::Block>>] a list
+    # containing as many elements as there are samples in the group
+    # @param worker [DB::Worker] worker
+    # @return [Array<Blocks::Block>] a list of all the prepared blocks for a
+    #   worker
 
-    def edit(*args)
-      system("$EDITOR #{args.join(' ')}")
+    def prepare_worker_blocks(worker_sample_blocks, worker)
+      worker_sample_blocks.map do |sample, block|
+        # Preorder traversal of blocks -- assign incremental numbers starting from
+        # 1 to each node as it is being traversed, as well as producing the job
+        # file for each task.
+        post_var_assign = lambda do |subblock|
+          if subblock.blocks.length == 0
+            # This section is only called when the subblock is actually a working
+            # block (a leaf in the block arborescence).
+            task = worker.tasks.create({
+              sample: sample,
+              block:  subblock.id,
+            })
+
+            subblock.vars.merge!(log: task.log)
+            File.open(task.sh, 'w') { |f| f.write(subblock.command) }
+            subblock.vars
+          else
+            subblock.blocks.each(&post_var_assign)
+          end
+        end
+
+        post_var_assign.call(block)
+        block
+      end
     end
 
   end
