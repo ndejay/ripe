@@ -14,6 +14,7 @@ module Ripe
       def self.up
         create_table :workers do |t|
           t.string  :handle
+          t.string  :output_prefix
         end
       end
 

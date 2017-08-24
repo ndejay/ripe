@@ -22,7 +22,6 @@ module Ripe
 
     REPOSITORY_PATH = '.ripe'
     DATABASE_PATH   = "#{REPOSITORY_PATH}/meta.db"
-    WORKERS_PATH    = "#{REPOSITORY_PATH}/workers"
 
     ##
     # Initialize a repository.
@@ -85,7 +84,6 @@ module Ripe
 
     def destroy
       FileUtils.rm(DATABASE_PATH) if File.exists? DATABASE_PATH
-      FileUtils.rm(WORKERS_PATH)  if Dir.exists?  WORKERS_PATH
     end
 
   end

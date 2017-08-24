@@ -40,7 +40,7 @@ describe WorkerController do
 
     describe '#prepare' do
       it 'prepares workers' do
-        workers = WorkerController.new('foobar', @test.samples, pwd: @test.path, mode: :force).workers
+        workers = WorkerController.new('foobar', @test.samples, '.ripe/workers', pwd: @test.path, mode: :force).workers
         # Prepares workers 1-2-3
         expect(DB::Worker.all.length).to eql 3
         # Returns the workers from the call to prepare
@@ -58,7 +58,7 @@ describe WorkerController do
       it 'properly prepares workers in force mode' do
         sample = @test.samples[0]
 
-        WorkerController.new 'foobar', [sample], pwd: @test.path, mode: :force
+        WorkerController.new 'foobar', [sample], '.ripe/workers', pwd: @test.path, mode: :force
 
         ref_tasks = DB::Worker.find(1).tasks
         test_tasks = DB::Worker.find(4).tasks
@@ -80,7 +80,7 @@ describe WorkerController do
         # Delete the first output
         FileUtils.rm_r("#{sample}/#{step}")
 
-        WorkerController.new 'foobar', [sample], pwd: @test.path, mode: :patch
+        WorkerController.new 'foobar', [sample], '.ripe/workers', pwd: @test.path, mode: :patch
 
         ref_tasks = DB::Worker.find(1).tasks
         test_tasks = DB::Worker.find(5).tasks
@@ -101,7 +101,7 @@ describe WorkerController do
         # Delete the first output
         FileUtils.rm_r("#{sample}/#{step}")
 
-        WorkerController.new 'foobar', [sample], pwd: @test.path, mode: :depend
+        WorkerController.new 'foobar', [sample], '.ripe/workers', pwd: @test.path, mode: :depend
 
         ref_tasks = DB::Worker.find(2).tasks
         test_tasks = DB::Worker.find(6).tasks

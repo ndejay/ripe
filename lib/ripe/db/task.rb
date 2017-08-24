@@ -22,7 +22,7 @@ module Ripe
       # Return path to task-level combined +stdout+ and +stderr+ log.
 
       def log
-        "#{self.dir}/#{self.id}.log"
+        "#{self.dir}.#{self.id}.log"
       end
 
       ##
@@ -32,7 +32,7 @@ module Ripe
       # @see Ripe::DB::Worker#sh
 
       def sh
-        "#{self.dir}/#{self.id}.sh"
+        "#{self.dir}.#{self.id}.sh"
       end
 
     end

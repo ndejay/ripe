@@ -8,7 +8,7 @@ describe Library do
     end
 
     it 'looks in the working directory' do
-      expect(@library.paths).to eql ["#{Dir.pwd}/#{Repo::REPOSITORY_PATH}"]
+      expect(@library.paths).to eql ["#{Dir.pwd}/#{REPOSITORY_PATH}"]
     end
 
     it 'cannot resolve components of the test library' do
@@ -32,7 +32,7 @@ describe Library do
     it 'looks in the working directory first' do
       # It looks in the working directory, and then in the directory
       # specified in RIPELIB.
-      expect(@library.paths[0]).to eql "#{Dir.pwd}/#{Repo::REPOSITORY_PATH}"
+      expect(@library.paths[0]).to eql "#{Dir.pwd}/#{REPOSITORY_PATH}"
       expect(@library.paths[1]).to eql @test.lib_path
     end
 

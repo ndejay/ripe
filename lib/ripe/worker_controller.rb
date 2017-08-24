@@ -22,7 +22,7 @@ module Ripe
     # @param samples [Array<String>] list of samples to apply the callback to
     # @param params [Hash<Symbol, String>] a list of worker-wide parameters
 
-    def initialize(workflow, samples, params = {})
+    def initialize(workflow, samples, output_prefix, params = {})
       # Extract callback and params from input
       callback, params = load_workflow(workflow, params)
 
@@ -37,7 +37,7 @@ module Ripe
         # Split samples into groups of +:group_num+ samples and produce a
         # worker from each of these groups.
         @workers = sample_blocks.each_slice(params[:group_num].to_i).map do |worker_blocks|
-          prepare_worker(worker_blocks, params)
+          prepare_worker(worker_blocks, output_prefix, params)
         end
       else
         []
@@ -111,8 +111,8 @@ module Ripe
     # @param params [Hash] worker-level parameter list
     # @return [DB::Worker] worker
 
-    def prepare_worker(worker_sample_blocks, params)
-      worker = DB::Worker.create(handle: params[:handle])
+    def prepare_worker(worker_sample_blocks, output_prefix, params)
+      worker = DB::Worker.create(handle: params[:handle], output_prefix: output_prefix)
       worker_blocks = prepare_worker_blocks(worker_sample_blocks, worker)
 
       # Combine all grouped sample blocks into a single worker block

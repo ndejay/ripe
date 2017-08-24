@@ -10,4 +10,5 @@ require_relative 'ripe/version'
 
 module Ripe
   PATH = File.expand_path('..', File.dirname(__FILE__))
+  REPOSITORY_PATH = '.ripe'
 end

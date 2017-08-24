@@ -15,7 +15,7 @@ module Ripe
       # Return path to worker directory
 
       def dir
-        "#{Repo::REPOSITORY_PATH}/workers/#{self.id}"
+        "#{self.output_prefix}.#{self.id}"
       end
 
       ##
@@ -26,7 +26,7 @@ module Ripe
       # @see Ripe::DB::Task#sh
 
       def sh
-        "#{self.dir}/job.sh"
+        "#{self.dir}.job.sh"
       end
 
       ##
@@ -34,7 +34,7 @@ module Ripe
       # the job has been completed.
 
       def stdout
-        "#{self.dir}/job.stdout"
+        "#{self.dir}.job.stdout"
       end
 
       ##
@@ -42,33 +42,9 @@ module Ripe
       # the job has been completed.
 
       def stderr
-        "#{self.dir}/job.stderr"
+        "#{self.dir}.job.stderr"
       end
 
-      # Automatically create worker directory upon object instantiation
-
-      after_create do
-        FileUtils.mkdir_p dir if !Dir.exists? dir
-      end
-
-      # Automatically remove worker directory upon object destruction
-
-      before_destroy do
-        FileUtils.rm_r dir if Dir.exists? dir
-      end
-
-      # Automatically create accessors for `#status`.
-      #
-      #     worker.status == :prepared
-      #
-      # becomes
-      #
-      #     worker.prepared?
-
-      [:unprepared, :prepared, :queueing, :idle,
-       :blocked, :active, :active_local, :cancelled, :completed].map do |s|
-        define_method("#{s}?") { status.to_s == s.to_s }
-      end
     end
 
   end
