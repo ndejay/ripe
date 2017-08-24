@@ -1,5 +1,6 @@
 require 'spec_helper'
 
+include Ripe
 include Ripe::DSL # required by dirty hack +WorkerController#prepare+
 
 require 'digest'
@@ -20,8 +21,6 @@ describe WorkerController do
       Dir.chdir(@tmpdir)
 
       ENV['RIPELIB'] = @test.lib_path
-      @repo = Repo.new
-      @repo.attach_or_create
       @library = Library
       @test.samples.each do |sample|
         FileUtils.mkdir_p(sample)
@@ -31,6 +30,7 @@ describe WorkerController do
           FileUtils.cp(source, dest)
         end
       end
+      Dir.mkdir REPOSITORY_PATH
     end
 
     after :all do

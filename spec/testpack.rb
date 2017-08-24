@@ -4,7 +4,7 @@ module Ripe
 
     def initialize
       @path = "#{PATH}/spec/testpack"
-      @lib_path = "#{@path}/#{Repo::REPOSITORY_PATH}"
+      @lib_path = "#{@path}/#{REPOSITORY_PATH}"
       @tasks = {
         'foo' => "#{@lib_path}/tasks/foo.sh",
         'bar' => "#{@lib_path}/tasks/bar.sh",

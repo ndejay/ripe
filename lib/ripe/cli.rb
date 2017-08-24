@@ -9,12 +9,7 @@ include Ripe::DSL
 module Ripe
 
   ##
-  # This class represents the CLI interface to ripe.  The methods defined in
-  # this class are wrappers for the methods defined in +Ripe::Repo+ and
-  # +Ripe::WorkerController+.
-  #
-  # @see Ripe::Repo
-  # @see Ripe::WorkerController
+  # This class represents the CLI interface to ripe.
 
   class CLI < Thor
 
@@ -35,13 +30,9 @@ module Ripe
     ##
     # Prepare samples.
     #
-    # @see Ripe::Repo#controller
     # @see Ripe::WorkerController#prepare
 
     def prepare(*samples)
-      repo = Repo.new
-      repo.attach_or_create
-
       abort 'No samples specified.' if samples.length == 0
 
       config = options[:config] ? Helper.parse_config(options[:config]) : {}
