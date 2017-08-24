@@ -30,6 +30,9 @@ module Ripe
         abort "Invalid mode #{params[:mode]}."
       end
 
+      @worker_id = 0
+      @task_id = 0
+
       # Apply the workflow to each sample
       sample_blocks = prepare_sample_blocks(samples, callback, params)
 
@@ -112,7 +115,8 @@ module Ripe
     # @return [DB::Worker] worker
 
     def prepare_worker(worker_sample_blocks, output_prefix, params)
-      worker = DB::Worker.create(handle: params[:handle], output_prefix: output_prefix)
+      @worker_id += 1
+      worker = DB::Worker.new(params[:handle], @worker_id, output_prefix)
       worker_blocks = prepare_worker_blocks(worker_sample_blocks, worker)
 
       # Combine all grouped sample blocks into a single worker block
@@ -148,10 +152,9 @@ module Ripe
           if subblock.blocks.length == 0
             # This section is only called when the subblock is actually a working
             # block (a leaf in the block arborescence).
-            task = worker.tasks.create({
-              sample: sample,
-              block:  subblock.id,
-            })
+            @task_id += 1
+            task = DB::Task.new(sample, block, @task_id, worker)
+            worker.tasks << task
 
             subblock.vars.merge!(log: task.log)
             File.open(task.sh, 'w') { |f| f.write(subblock.command) }

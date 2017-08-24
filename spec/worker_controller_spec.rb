@@ -42,13 +42,13 @@ describe WorkerController do
       it 'prepares workers' do
         workers = WorkerController.new('foobar', @test.samples, '.ripe/workers', pwd: @test.path, mode: :force).workers
         # Prepares workers 1-2-3
-        expect(DB::Worker.all.length).to eql 3
-        # Returns the workers from the call to prepare
-        expect(workers).to eql DB::Worker.all.to_a
+        expect(workers.length).to eql 3
       end
 
       it 'prepares workers with accurate task scripts' do
-        DB::Task.all.each do |task|
+        workers = WorkerController.new('foobar', @test.samples, '.ripe/workers', pwd: @test.path, mode: :force).workers
+
+        workers.map { |a| a.tasks }.inject(&:+).each do |task|
           test_hash = signature(task.sh)
           ref_hash = signature("#{@test.path}/#{task.sh}")
           expect(test_hash).to eql ref_hash
@@ -56,12 +56,11 @@ describe WorkerController do
       end
 
       it 'properly prepares workers in force mode' do
-        sample = @test.samples[0]
+        workers = WorkerController.new('foobar', @test.samples, '.ripe/workers', pwd: @test.path, mode: :force).workers
+        workers += WorkerController.new('foobar', [@test.samples[0]], '.ripe/workers', pwd: @test.path, mode: :force).workers
 
-        WorkerController.new 'foobar', [sample], '.ripe/workers', pwd: @test.path, mode: :force
-
-        ref_tasks = DB::Worker.find(1).tasks
-        test_tasks = DB::Worker.find(4).tasks
+        ref_tasks = workers[0].tasks
+        test_tasks = workers[3].tasks
 
         expect(ref_tasks.length).to eql 3
         expect(test_tasks.length).to eql 3
@@ -77,13 +76,15 @@ describe WorkerController do
         sample = @test.samples[0]
         step = @test.steps[1]
 
+        workers = WorkerController.new('foobar', @test.samples, '.ripe/workers', pwd: @test.path, mode: :force).workers
+
         # Delete the first output
         FileUtils.rm_r("#{sample}/#{step}")
 
-        WorkerController.new 'foobar', [sample], '.ripe/workers', pwd: @test.path, mode: :patch
+        workers += WorkerController.new('foobar', [sample], '.ripe/workers', pwd: @test.path, mode: :patch).workers
 
-        ref_tasks = DB::Worker.find(1).tasks
-        test_tasks = DB::Worker.find(5).tasks
+        ref_tasks = workers[0].tasks
+        test_tasks = workers[3].tasks
 
         expect(ref_tasks.length).to eql 3
         expect(test_tasks.length).to eql 1
@@ -98,13 +99,15 @@ describe WorkerController do
         sample = @test.samples[1]
         step = @test.steps[1]
 
+        workers = WorkerController.new('foobar', @test.samples, '.ripe/workers', pwd: @test.path, mode: :force).workers
+
         # Delete the first output
         FileUtils.rm_r("#{sample}/#{step}")
 
-        WorkerController.new 'foobar', [sample], '.ripe/workers', pwd: @test.path, mode: :depend
+        workers += WorkerController.new('foobar', [sample], '.ripe/workers', pwd: @test.path, mode: :depend).workers
 
-        ref_tasks = DB::Worker.find(2).tasks
-        test_tasks = DB::Worker.find(6).tasks
+        ref_tasks = workers[1].tasks
+        test_tasks = workers[3].tasks
 
         expect(ref_tasks.length).to eql 3
         expect(test_tasks.length).to eql 3
@@ -118,7 +121,8 @@ describe WorkerController do
 
       describe '#local' do
         it 'runs worker jobs locally' do
-          worker = DB::Worker.find(1)
+          workers = WorkerController.new('foobar', @test.samples, '.ripe/workers', pwd: @test.path, mode: :force).workers
+          worker = workers[0]
           `bash #{worker.sh}`
           @test.steps.map do |step|
             test_hash = signature("#{@test.samples[0]}/#{step}")

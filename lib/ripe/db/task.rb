@@ -3,26 +3,31 @@ module Ripe
   module DB
 
     ##
-    # This class represents a +Task+ object in ripe's internal database. Its
-    # fields are defined by +Ripe::DB::TaskMigration+.
+    # This class represents a +Task+ object in ripe's internal database.
     #
     # @see Ripe::WorkerController
 
-    class Task < ActiveRecord::Base
-      belongs_to :worker
+    class Task
+
+      def initialize(sample, block, id, parent_worker)
+        @sample = sample
+        @id = id
+        @block = block
+        @parent_worker = parent_worker
+      end
 
       ##
       # Return path to task directory, which is the same as worker directory.
 
       def dir
-        "#{self.worker.dir}"
+        "#{@parent_worker.dir}.#{@id}"
       end
 
       ##
       # Return path to task-level combined +stdout+ and +stderr+ log.
 
       def log
-        "#{self.dir}.#{self.id}.log"
+        "#{self.dir}.log"
       end
 
       ##
@@ -32,7 +37,7 @@ module Ripe
       # @see Ripe::DB::Worker#sh
 
       def sh
-        "#{self.dir}.#{self.id}.sh"
+        "#{self.dir}.sh"
       end
 
     end

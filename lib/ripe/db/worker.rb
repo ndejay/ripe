@@ -3,19 +3,27 @@ module Ripe
   module DB
 
     ##
-    # This class represents a +Worker+ object in ripe's internal database. Its
-    # fields are defined by +Ripe::DB::WorkerMigration+.
+    # This class represents a +Worker+ object in ripe's internal database.
     #
     # @see Ripe::WorkerController
 
-    class Worker < ActiveRecord::Base
-      has_many :tasks, dependent: :destroy
+    class Worker
+
+      attr_accessor :tasks
+      attr_accessor :id
+
+      def initialize(handle, id, output_prefix)
+        @handle = handle
+        @id = id
+        @output_prefix = output_prefix
+        @tasks = []
+      end
 
       ##
       # Return path to worker directory
 
       def dir
-        "#{self.output_prefix}.#{self.id}"
+        "#{@output_prefix}.#{@id}"
       end
 
       ##
@@ -26,7 +34,7 @@ module Ripe
       # @see Ripe::DB::Task#sh
 
       def sh
-        "#{self.dir}.job.sh"
+        "#{dir}.job.sh"
       end
 
       ##
@@ -34,7 +42,7 @@ module Ripe
       # the job has been completed.
 
       def stdout
-        "#{self.dir}.job.stdout"
+        "#{dir}.job.stdout"
       end
 
       ##
@@ -42,7 +50,7 @@ module Ripe
       # the job has been completed.
 
       def stderr
-        "#{self.dir}.job.stderr"
+        "#{dir}.job.stderr"
       end
 
     end
