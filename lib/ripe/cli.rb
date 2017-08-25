@@ -3,8 +3,6 @@ require 'thor'
 require_relative '../ripe'
 
 include Ripe
-include Ripe::DB
-include Ripe::DSL
 
 module Ripe
 
@@ -13,15 +11,11 @@ module Ripe
 
   class CLI < Thor
 
-
-
-
-
     desc 'prepare SAMPLES', 'Prepare jobs from template workflow'
     option :workflow, :aliases => '-w', :type => :string, :required => true,
       :desc => 'Workflow to be applied'
     option :config, :aliases => '-c', :type => :string, :required => false,
-      :desc => 'Config file for workflows.'
+      :desc => 'Config file for workflows'
     option :options, :aliases => '-o', :type => :string, :required => false,
       :desc => 'Options', :default => ''
     option :output_prefix, :aliases => '-p', :type => :string, :required => true,
@@ -30,7 +24,7 @@ module Ripe
     ##
     # Prepare samples.
     #
-    # @see Ripe::WorkerController#prepare
+    # @see Ripe::WorkerController
 
     def prepare(*samples)
       abort 'No samples specified.' if samples.length == 0
@@ -42,10 +36,6 @@ module Ripe
       WorkerController.new(options[:workflow], samples, options[:output_prefix], workflow_options)
     end
 
-
-
-
-
     ##
     # Retrieve ripe version.
 
@@ -53,10 +43,6 @@ module Ripe
     def version
       puts "ripe version #{Ripe::VERSION}"
     end
-
-
-
-
 
   end
 

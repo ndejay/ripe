@@ -1,3 +1,8 @@
+require 'fileutils'
+
+require_relative 'task'
+require_relative 'worker'
+
 module Ripe
 
   ##
@@ -112,11 +117,11 @@ module Ripe
     #   as there are samples in the group, with each element containing
     #   +[String, Blocks::Block]+
     # @param params [Hash] worker-level parameter list
-    # @return [DB::Worker] worker
+    # @return [Worker] worker
 
     def prepare_worker(worker_sample_blocks, output_prefix, params)
       @worker_id += 1
-      worker = DB::Worker.new(params[:handle], @worker_id, output_prefix)
+      worker = Worker.new(params[:handle], @worker_id, output_prefix)
       worker_blocks = prepare_worker_blocks(worker_sample_blocks, worker)
 
       # Combine all grouped sample blocks into a single worker block
@@ -139,7 +144,7 @@ module Ripe
     #
     # @param worker_sample_blocks [Array<Hash<String, Blocks::Block>>] a list
     # containing as many elements as there are samples in the group
-    # @param worker [DB::Worker] worker
+    # @param worker [Worker] worker
     # @return [Array<Blocks::Block>] a list of all the prepared blocks for a
     #   worker
 
@@ -153,7 +158,7 @@ module Ripe
             # This section is only called when the subblock is actually a working
             # block (a leaf in the block arborescence).
             @task_id += 1
-            task = DB::Task.new(sample, block, @task_id, worker)
+            task = Task.new(sample, block, @task_id, worker)
             worker.tasks << task
 
             subblock.vars.merge!(log: task.log)
