@@ -5,22 +5,13 @@
 [![Test Coverage](https://codeclimate.com/github/ndejay/ripe/badges/coverage.svg)](https://codeclimate.com/github/ndejay/ripe)
 [![Inline docs](http://inch-ci.org/github/ndejay/ripe.svg?branch=master)](http://inch-ci.org/github/ndejay/ripe)
 
-ripe provides a Ruby-based DSL for pipeline job creation.  With ripe, you can easily collate tasks
-into workflows which can then be applied to samples.
+ripe provides a domain-specific language (DSL) allowing the simple definition of a pipeline in Ruby
+consisting of tasks defined in shell, Liquid or ERB templating.  ripe then spits out scripts that you can
+distribute across your compute cluster of choice.
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'ripe', :git => 'git://github.com/ndejay/ripe.git'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
+Install it yourself as:
 
     $ gem install ripe
 
