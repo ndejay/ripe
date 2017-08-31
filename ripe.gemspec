@@ -26,7 +26,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "guard-rspec", "~> 4.5"
   spec.add_development_dependency "codeclimate-test-reporter", "~> 0.4"
 
-  spec.add_runtime_dependency "fileutils", "~> 0.7"
+# spec.add_runtime_dependency "fileutils", "0.7"
   spec.add_runtime_dependency "liquid", "~> 3.0"
 
   spec.add_runtime_dependency "thor", "~> 0.19"
