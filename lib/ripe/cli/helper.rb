@@ -1,3 +1,5 @@
+require 'json'
+
 module Ripe
 
   class CLI

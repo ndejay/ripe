@@ -1,7 +1,6 @@
 require 'spec_helper'
 
-include Ripe
-include Ripe::DSL # required by dirty hack +WorkerController#prepare+
+include Ripe::DSL
 
 require 'digest'
 require 'fileutils'

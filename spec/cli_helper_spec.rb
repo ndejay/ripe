@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe CLI do
+describe CLI::Helper do
   describe '::Helper#parse_cli_opts' do
     it 'parses string options into hash options' do 
       string_opts = 'a=1,b=2,c=3'

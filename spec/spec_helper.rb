@@ -6,5 +6,3 @@ end
 require_relative '../lib/ripe'
 require_relative 'testpack'
 require 'tempfile'
-
-include Ripe

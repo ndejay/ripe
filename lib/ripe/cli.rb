@@ -1,6 +1,5 @@
 require 'thor'
 
-require_relative '../ripe'
 
 include Ripe
 
