@@ -133,7 +133,8 @@ module Ripe
         command: Blocks::SerialBlock.new(*worker_blocks).command,
       })
 
-      worker_block = Blocks::LiquidBlock.new("#{PATH}/share/moab.sh", params)
+      template_output = params[:template_output] || "pbs.sh"
+      worker_block = Blocks::LiquidBlock.new("#{PATH}/share/#{template_output}", params)
       File.open(worker.sh, 'w') { |f| f.write(worker_block.command) }
 
       worker

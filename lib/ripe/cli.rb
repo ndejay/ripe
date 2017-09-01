@@ -1,7 +1,7 @@
 require 'thor'
 
-
 include Ripe
+include Ripe::DSL
 
 module Ripe
 
@@ -17,7 +17,7 @@ module Ripe
       :desc => 'Config file for workflows'
     option :options, :aliases => '-o', :type => :string, :required => false,
       :desc => 'Options', :default => ''
-    option :output_prefix, :aliases => '-p', :type => :string, :required => true,
+    option :output_prefix, :aliases => '-x', :type => :string, :required => true,
       :desc => 'Output prefix', :default => '.ripe/workers'
 
     ##
