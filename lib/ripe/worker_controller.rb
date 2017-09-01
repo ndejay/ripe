@@ -163,7 +163,7 @@ module Ripe
             worker.tasks << task
 
             subblock.vars.merge!(log: task.log)
-            File.open(task.sh, 'w') { |f| f.write(subblock.command) }
+            File.open(task.log, 'w') { |f| f.write(subblock.command) }
             subblock.vars
           else
             subblock.blocks.each(&post_var_assign)

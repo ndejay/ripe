@@ -24,18 +24,10 @@ module Ripe
     end
 
     ##
-    # Return path to task-level combined +stdout+ and +stderr+ log.
+    # Return path to task-level combined shell script, +stdout+ and +stderr+ log.
 
     def log
       "#{self.dir}.log"
-    end
-
-    ##
-    # Return path to task-level job script, which only includes the task at
-    # hand.  This script is never actually executed by ripe.
-
-    def sh
-      "#{self.dir}.sh"
     end
 
   end
