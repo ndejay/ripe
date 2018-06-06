@@ -130,7 +130,7 @@ class NilClass
   # @return [Block] the +block+ parameter
 
   def |(block)
-    raise NoMethodError unless Ripe::Blocks::Block > block.class
+    # raise NoMethodError unless Ripe::Blocks::Block > block.class
     block
   end
 

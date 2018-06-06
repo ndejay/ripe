@@ -9,9 +9,10 @@ module Ripe
 
   class Task
 
-    def initialize(sample, block, id, parent_worker)
+    def initialize(sample, block, id, parent_worker, handle)
       @sample = sample
       @id = id
+      @handle = handle
       @block = block
       @parent_worker = parent_worker
     end
@@ -20,7 +21,7 @@ module Ripe
     # Return path to task directory, which is the same as worker directory.
 
     def dir
-      "#{@parent_worker.dir}.#{@id}"
+      "#{@parent_worker.dir}__#{@sample}__#{@id.to_s.rjust(3, "0")}:#{@handle}"
     end
 
     ##

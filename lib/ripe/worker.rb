@@ -24,7 +24,7 @@ module Ripe
     # Return path to worker directory
 
     def dir
-      "#{@output_prefix}.#{@id}"
+      "#{@output_prefix}#{Time.new.strftime "%Y-%m-%d-%H:%M:%S"}__#{@handle}:#{@id.to_s.rjust(3, '0')}"
     end
 
     ##
@@ -35,7 +35,7 @@ module Ripe
     # @see Ripe::Task#sh
 
     def sh
-      "#{dir}.job.sh"
+      "#{dir}__job.sh"
     end
 
     ##
@@ -43,7 +43,7 @@ module Ripe
     # the job has been completed.
 
     def stdout
-      "#{dir}.job.stdout"
+      "#{dir}__job.stdout"
     end
 
     ##
@@ -51,7 +51,7 @@ module Ripe
     # the job has been completed.
 
     def stderr
-      "#{dir}.job.stderr"
+      "#{dir}__job.stderr"
     end
 
   end

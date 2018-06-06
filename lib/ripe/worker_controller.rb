@@ -159,7 +159,7 @@ module Ripe
             # This section is only called when the subblock is actually a working
             # block (a leaf in the block arborescence).
             @task_id += 1
-            task = Task.new(sample, block, @task_id, worker)
+            task = Task.new(sample, block, @task_id, worker, subblock.id)
             worker.tasks << task
 
             subblock.vars.merge!(log: task.log)
@@ -170,6 +170,7 @@ module Ripe
           end
         end
 
+        @task_id = 0
         post_var_assign.call(block)
         block
       end
