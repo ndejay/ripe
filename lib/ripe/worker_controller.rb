@@ -98,10 +98,10 @@ module Ripe
         end
 
         if block != nil
-          puts "Preparing sample #{sample}"
+          puts "ripe: Preparing sample #{sample}"
           {sample => block}
         else
-          puts "Nothing to do for sample #{sample}"
+          puts "ripe: Nothing to do for sample #{sample}"
           nil
         end
       end
@@ -136,6 +136,8 @@ module Ripe
       template_output = params[:template_output] || "pbs.sh"
       worker_block = Blocks::LiquidBlock.new("#{PATH}/share/#{template_output}", params)
       File.open(worker.sh, 'w') { |f| f.write(worker_block.command) }
+
+      puts worker.sh
 
       worker
     end
