@@ -2,7 +2,6 @@
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require_relative 'lib/ripe/version'
-
 Gem::Specification.new do |spec|
   spec.name          = "ripe"
   spec.version       = Ripe::VERSION
@@ -26,7 +25,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "guard-rspec", "~> 4.5"
   spec.add_development_dependency "codeclimate-test-reporter", "~> 0.4"
 
-# spec.add_runtime_dependency "fileutils", "0.7"
   spec.add_runtime_dependency "liquid", "~> 3.0"
 
   spec.add_runtime_dependency "thor", "~> 0.19"
