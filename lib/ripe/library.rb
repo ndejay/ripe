@@ -48,14 +48,16 @@ module Ripe
         workflows = Array.new
         paths.map do |path|
             directory =  path.concat("/workflows/")
-            puts directory
-            if File.directory?(directory)
-                workflows += Dir.entries(directory).reject {|f| File.directory?(f)}.map{|f| File.basename(f, '.rb')}
+            puts path
+            if File.directory?(directory) 
+                workflows += Dir.entries(directory).select {|f| f.match('.rb')}.reject{|f| f.match('^._')}.map{|f| File.basename(f, '.rb')}
             end
         end
         workflows.uniq!
         if workflows.any?
             workflows = workflows.join("\n")
+        else
+            puts 'No workflow available. Did you forget to set the library path?'
         end
         workflows
       end
