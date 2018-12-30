@@ -38,7 +38,7 @@ module Ripe
     ##
     # Retrieve ripe version.
 
-    desc 'version', 'Retrieve ripe version'ß
+    desc 'version', 'Retrieve ripe version'
     def version
       puts "ripe version #{Ripe::VERSION}"
     end
@@ -47,7 +47,7 @@ module Ripe
     # List available workflows
     desc 'list', 'List available workflows'
     def list
-      put Library.list_workflows
+      puts Library.list_workflows
     end
 
   end
