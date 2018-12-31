@@ -47,6 +47,21 @@ module Ripe
         end
       end
 
+      def self.print_options(workflow)
+        puts ""
+        puts 'List available options for workflow : ' + workflow
+        puts '-------------------------------------'
+        w = WorkerController.new(workflow, [], '')
+        s = ""
+        w.params.each{|key, value|
+          if !['wd', 'group_num', 'handle'].include?("#{key}")
+            s += "#{key}, "
+          end
+          }
+        puts s.chop.chop
+        puts ""
+      end
+
     end
 
   end

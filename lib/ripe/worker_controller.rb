@@ -17,6 +17,7 @@ module Ripe
   class WorkerController
 
     attr_accessor :workers
+    attr_reader :params
 
     ##
     # Prepare workers by applying the workflow callback and its parameters to
@@ -29,23 +30,25 @@ module Ripe
 
     def initialize(workflow, samples, output_prefix, params = {})
       # Extract callback and params from input
-      callback, params = load_workflow(workflow, params)
+      callback, @params = load_workflow(workflow, params)
 
-      if ![:patch, :force, :depend].include?(params[:mode].to_sym)
+      if ![:patch, :force, :depend].include?(@params[:mode].to_sym)
         abort "Invalid mode #{params[:mode]}."
       end
+
+      return if samples.length == 0
 
       @worker_id = 0
       @task_id = 0
 
       # Apply the workflow to each sample
-      sample_blocks = prepare_sample_blocks(samples, callback, params)
+      sample_blocks = prepare_sample_blocks(samples, callback, @params)
 
       if sample_blocks
         # Split samples into groups of +:group_num+ samples and produce a
         # worker from each of these groups.
         @workers = sample_blocks.each_slice(params[:group_num].to_i).map do |worker_blocks|
-          prepare_worker(worker_blocks, output_prefix, params)
+          prepare_worker(worker_blocks, output_prefix, @params)
         end
       else
         []
