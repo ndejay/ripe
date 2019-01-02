@@ -49,8 +49,8 @@ module Ripe
 
       def self.print_options(workflow)
         puts ""
-        puts 'List available options for workflow : ' + workflow
-        puts '-------------------------------------'
+        puts "Available options for workflow : " + workflow
+        puts "-------------------------------------"
         w = WorkerController.new(workflow, [], '')
         s = ""
         w.params.each{|key, value|
