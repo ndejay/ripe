@@ -40,6 +40,29 @@ module Ripe
         search.compact.first
       end
 
+      ## 
+      # List the available workflows
+      # 
+      # @return [String] The list of workflows as a string (one per line) or error/info message
+      def list_workflows
+        workflows = Array.new
+        paths.map do |path|
+            directory =  path.concat("/workflows/")
+            puts path
+            if File.directory?(directory) 
+                workflows += Dir.entries(directory).select {|f| f.match('.rb')}.reject{|f| f.match('^._')}.map{|f| File.basename(f, '.rb')}
+            end
+        end
+        workflows.uniq!
+        if workflows.any?
+            workflows = workflows.join("\n")
+        else
+            puts 'No workflow available. Did you forget to set the library path?'
+        end
+        workflows
+      end
+      
+    ##
     end
 
   end
