@@ -69,7 +69,7 @@ module Ripe
 
         #{declarations.join("\n")}
 
-        exec 1>"$LOG" 2>&1
+        exec 1>>"$LOG" 2>&1
 
         #{File.new(@filename).read}
         echo "##.DONE.##"

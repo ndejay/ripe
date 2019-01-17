@@ -49,7 +49,7 @@ module Ripe
 
         # <#{id}>
 
-        exec 1>"<%= vars.log %>" 2>&1
+        exec 1>>"<%= vars.log %>" 2>&1
 
         #{File.new(@filename).read}
         echo "##.DONE.##"

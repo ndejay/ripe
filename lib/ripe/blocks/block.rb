@@ -12,7 +12,7 @@ module Ripe
     # @attr_reader blocks [Array<Block>] list of children blocks
     # @attr vars [Hash<Symbol, String>] key-value pairs
     #
-    # @see Ripe::WorkerController::Preparer
+    # @see Ripe::WorkerController
 
     class Block
 
@@ -130,7 +130,7 @@ class NilClass
   # @return [Block] the +block+ parameter
 
   def |(block)
-    raise NoMethodError unless Ripe::Blocks::Block > block.class
+    # raise NoMethodError unless Ripe::Blocks::Block > block.class
     block
   end
 

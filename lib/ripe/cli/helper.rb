@@ -1,3 +1,5 @@
+require 'json'
+
 module Ripe
 
   class CLI
@@ -43,6 +45,21 @@ module Ripe
         rescue
           abort "Configuration file specified but not found: #{filename}"
         end
+      end
+
+      def self.print_options(workflow)
+        puts ""
+        puts "Available options for workflow : " + workflow
+        puts "-------------------------------------"
+        w = WorkerController.new(workflow, [], '')
+        s = ""
+        w.params.each{|key, value|
+          if !['wd', 'group_num', 'handle'].include?("#{key}")
+            s += "#{key}, "
+          end
+          }
+        puts s.chop.chop
+        puts ""
       end
 
     end

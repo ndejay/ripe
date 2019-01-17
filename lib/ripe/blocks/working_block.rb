@@ -11,7 +11,7 @@ module Ripe
     # considered the same entity.
     #
     # @see Ripe::CLI::TaskCLI
-    # @see Ripe::WorkerController::Preparer#prepare
+    # @see Ripe::WorkerController#prepare
     # @see Ripe::Blocks::BashBlock
 
     class WorkingBlock < Block

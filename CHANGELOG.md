@@ -1,6 +1,12 @@
 HEAD
 ----
 
+v1.0.0b
+-------
+
+  - [ndejay/ripe#18](http://github.com/ndejay/ripe/pull/18): New/list workflow options and list workflows.
+  - [ndejay/ripe#16](http://github.com/ndejay/ripe/issues/16): Transform ripe into a shell-script producing engine.
+
 v0.3.0
 ------
 

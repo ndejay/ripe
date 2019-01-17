@@ -1,111 +1,47 @@
-require 'ripl' # REPL
-require 'hirb' # Pretty output for +ActiveRecord+ objects
 require 'thor'
 
-require_relative '../ripe'
-
 include Ripe
-include Ripe::DB
 include Ripe::DSL
 
 module Ripe
 
   ##
-  # This class represents the CLI interface to ripe.  The methods defined in
-  # this class are wrappers for the methods defined in +Ripe::Repo+ and
-  # +Ripe::WorkerController+.
-  #
-  # @see Ripe::Repo
-  # @see Ripe::WorkerController
+  # This class represents the CLI interface to ripe.
 
   class CLI < Thor
 
-    desc 'init', 'Initialize ripe repository'
-
-    ##
-    # Initialize ripe repository.
-    #
-    # @see Ripe::Repo#attach_or_create
-
-    def init
-      puts "Initialized ripe repository in #{Dir.pwd}"
-      repo = Repo.new
-      repo.attach_or_create
-    end
-
-
-
-
-
-    desc 'console', 'Launch ripe console'
-
-    ##
-    # Launch ripe console.  It is a REPL bound to the context of a
-    # +Ripe::WorkerController+ initialized in the working directory.
-
-    def console
-      repo = Repo.new
-      repo.attach
-
-      unless repo.has_repository?
-        abort "Cannot launch console: ripe repo not initialized"
-      end
-
-      # Do not send arguments to the REPL
-      ARGV.clear
-
-      Ripl.config[:prompt] = proc do
-        # This is the only place I could think of placing +Hirb#enable+.
-        Hirb.enable unless Hirb::View.enabled?
-        'ripe> '
-      end
-
-      # Launch the REPL session in the context of +WorkerController+.
-      Ripl.start :binding => repo.controller.instance_eval { binding }
-    end
-
-
-
-
-
     desc 'prepare SAMPLES', 'Prepare jobs from template workflow'
+    # Mandatory parameters
     option :workflow, :aliases => '-w', :type => :string, :required => true,
       :desc => 'Workflow to be applied'
+    option :output_prefix, :aliases => '-x', :type => :string, :required => true,
+      :desc => 'Output prefix', :default => '.ripe/'
+   # Optional parameters
     option :config, :aliases => '-c', :type => :string, :required => false,
-      :desc => 'Config file for workflows.'
+      :desc => 'Config file for workflows'
     option :options, :aliases => '-o', :type => :string, :required => false,
-      :desc => 'Options', :default => ''
-    option :start, :aliases => '-s', :type => :boolean, :required => false,
-      :desc => 'Automatically submit the prepared jobs onto the compute cluster', :default => false
-
+      :desc => 'Available options in the format opt1=value1,opt2=value2', :default => ''
+    option :list_options, :aliases => '-l', :type => :boolean, :required => false,
+      :desc => 'List workflow available options', :default => false
     ##
     # Prepare samples.
     #
-    # @see Ripe::Repo#controller
-    # @see Ripe::WorkerController#prepare
-
+    # @see Ripe::WorkerController
     def prepare(*samples)
-      repo = Repo.new
-      repo.attach
 
-      unless repo.has_repository?
-        abort 'Cannot prepare samples: ripe repo not initialized'
+      if options[:list_options]
+        Helper.print_options(options[:workflow])
+        return
       end
-
+      
       abort 'No samples specified.' if samples.length == 0
 
       config = options[:config] ? Helper.parse_config(options[:config]) : {}
       workflow_options = config[options[:workflow].to_sym] ||= {}
       workflow_options.merge!(Helper.parse_cli_opts(options[:options]))
 
-      workers = repo.controller.prepare(options[:workflow], samples, workflow_options)
-
-      repo.controller.start(workers) if options[:start]
+      WorkerController.new(options[:workflow], samples, options[:output_prefix], workflow_options)
     end
-
-
-
-
 
     ##
     # Retrieve ripe version.
@@ -115,9 +51,12 @@ module Ripe
       puts "ripe version #{Ripe::VERSION}"
     end
 
-
-
-
+    ##
+    # List available workflows
+    desc 'list', 'List available workflows'
+    def list
+      puts Library.list_workflows
+    end
 
   end
 
