@@ -45,6 +45,9 @@ module Ripe
       sample_blocks = prepare_sample_blocks(samples, callback, @params)
 
       if sample_blocks
+
+        write_trace(samples, callback, workflow, output_prefix, @params)
+
         # Split samples into groups of +:group_num+ samples and produce a
         # worker from each of these groups.
         @workers = sample_blocks.each_slice(@params[:group_num].to_i).map do |worker_blocks|
@@ -80,6 +83,65 @@ module Ripe
 
       [$workflow.callback, params]
     end
+
+    ##
+    # Create a log file to trace steps applied to each sample
+    # @param samples [Array<String>] a list of samples
+    # @param callback [Proc] workflow callback to be applied to each sample
+    # @param params [Hash] a list of worker-wide parameters
+    # @return nothing
+    def write_trace(samples, callback, workflow, output_prefix, params)
+
+      samples.map do |sample|
+          filename = sample+'/'+sample+'.log'
+          
+          if !File.exists?(filename)
+            File.open(filename, 'w') { |f| f.write("Sample name: "+sample+"\n") }
+          end
+
+          template = "#"+"-"* 8 + "\n"
+          template = template + "Workflow name: %s\n" % workflow
+          template = template + "Workflow date: %s\n" % Time.now.strftime("%Y-%m-%d %H:%M:%S")
+          template = template + "Workflow library: %s\n" % Library.find(:workflow, "#{workflow}.rb")
+          template = template + "Workflow script folder: %s\n" % output_prefix
+          template = template + "Workflow mode: %s\n" % params[:mode]
+          
+          lib = File.dirname(Library.find(:workflow, "#{workflow}.rb"))
+          git = `(cd '#{lib}'; git branch | grep '*' | sed 's/\* //' )`
+          template = template + "Workflow git branch: %s\n" % git.strip
+          template = template + "Workflow git last-commit: %s\n" %  `(cd '#{lib}';git rev-parse HEAD)`.strip
+
+          s = ""
+          params.each{|key, value|
+               if !['wd', 'group_num', 'handle'].include?("#{key}")
+                  s += "#{key}:#{value}, "
+               end
+          }
+
+          template = template + "Workflow params: %s\n" % s.chomp.chomp
+          File.open(filename, 'a') { |f| f.write(template) }
+         
+      end
+    end
+
+    # Add information to trace file.  Assumes trace file exists
+    # @param sample [String] a sample 
+    # @param label [String] a label
+    # @param val [String] a value 
+    def add_to_trace(sample, label, val)
+
+      filename = sample+'/'+sample+'.log'
+      
+      if !File.exists?(filename)
+        puts 'Missing trace file %s' % filename
+        return
+      end
+      
+      template = "%s: " % label
+      template += "%s \n" % val
+      File.open(filename, 'a') { |f| f.write(template) }
+    end 
+
 
     ##
     # Apply the workflow (callback) to each sample, producing a single root
@@ -140,10 +202,21 @@ module Ripe
 
       template_output = params[:template_output] || "pbs.sh"
       worker_block = Blocks::LiquidBlock.new("#{PATH}/share/#{template_output}", params)
+
       File.open(worker.sh, 'w') { |f| f.write(worker_block.command) }
 
       puts worker.sh
+      
+      # Write to trace file
 
+      sample =  worker_sample_blocks[0][0]
+      filename = sample+'/'+sample+'.log'
+      add_to_trace(sample, 'Workflow script file', worker.sh)
+      add_to_trace(sample, 'Workflow script ended', 'ended_NA')
+      
+      cmd = "\n\n"+'DATE=`date "+%Y-%m-%d %H:%M:%S"`;sed "s/ended_NA/$DATE/" '+ filename + "\n"
+      File.open(worker.sh, 'a') { |f| f.write(cmd) }
+    
       worker
     end
 
