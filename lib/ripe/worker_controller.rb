@@ -30,6 +30,21 @@ module Ripe
     # @param params [Hash<Symbol, String>] a list of worker-wide parameters
 
     def initialize(workflow, samples, output_prefix, params = {})
+      
+      # Checking for valid output_prefix
+      if !File.directory?(output_prefix)
+        if output_prefix.include? "/"
+          abort "Directory #{output_prefix} do not exist"
+        else
+          puts "The sh files will be written in the current directory with #{output_prefix} as prefix"
+          answer = [(print 'Is this what you want? [yes/no]'), STDIN.gets.rstrip][1]
+          if answer == "no" 
+            abort "Exiting"
+          end
+        end
+      end
+
+
       # Extract callback and params from input
       callback, @params = load_workflow(workflow, params)
 
@@ -101,7 +116,6 @@ module Ripe
       filename = sample+'/'+sample+'.log'
       workflow = params[:workflow]
              
-
       # Creating log file if it does not exist
       if !File.exists?(filename)
             File.open(filename, 'w') { |f| f.write("Sample name: "+sample+"\n") }
@@ -124,7 +138,8 @@ module Ripe
         
       block_ids = block_ids.flatten.uniq
       block_ids = block_ids.map(&:to_s)
-      block_ids -= ["|"]
+      block_ids -= ["|", "+"]
+      block_ids = block_ids.map{|block_id| block_id.chomp(".sh")}
       block_ids = block_ids.join("; ")
       template += "Workflow tasks: %s\n" % block_ids
  
@@ -173,7 +188,7 @@ module Ripe
     def prepare_sample_blocks(samples, callback, params)
 
       sample_blocks = samples.map do |sample|
-
+        sample = sample.chomp("/")
         block = callback.call(sample, params)
         
         if block
@@ -228,9 +243,9 @@ module Ripe
 
       puts worker.sh
 
-      # Appending trace statements after blocks
+      
       if params[:keep_trace]=="true"
-        
+        # Appending trace statements after blocks
         worker_sh = worker.sh
         trace = add_trace_to_worker(worker_sample_blocks, worker_sh, output_prefix, params)
         File.open(worker.sh, 'a') { |f| f.write( trace ) }
