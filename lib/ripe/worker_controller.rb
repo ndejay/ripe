@@ -32,7 +32,7 @@ module Ripe
     def initialize(workflow, samples, output_prefix, params = {})
       
       # Checking for valid output_prefix
-      if !File.directory?(output_prefix)
+      if samples.length > 0 && !File.directory?(output_prefix)
         if output_prefix.include? "/"
           abort "Directory #{output_prefix} do not exist"
         else
