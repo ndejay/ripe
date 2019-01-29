@@ -238,17 +238,15 @@ module Ripe
 
       template_output = params[:template_output] || "pbs.sh"
       worker_block = Blocks::LiquidBlock.new("#{PATH}/share/#{template_output}", params)
-
-      File.open(worker.sh, 'w') { |f| f.write(worker_block.command) }
+      worker_sh = worker.sh
+      File.open(worker_sh, 'w') { |f| f.write(worker_block.command) }
 
       puts worker.sh
 
-      
       if params[:keep_trace]=="true"
         # Appending trace statements after blocks
-        worker_sh = worker.sh
         trace = add_trace_to_worker(worker_sample_blocks, worker_sh, output_prefix, params)
-        File.open(worker.sh, 'a') { |f| f.write( trace ) }
+        File.open(worker_sh, 'a') { |f| f.write( trace ) }
              
       end 
 
