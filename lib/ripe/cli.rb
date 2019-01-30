@@ -31,7 +31,7 @@ module Ripe
 
       if options[:list_options]
         Helper.print_options(options[:workflow])
-        return
+        abort
       end
       
       abort 'No samples specified.' if samples.length == 0

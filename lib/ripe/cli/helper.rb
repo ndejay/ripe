@@ -47,7 +47,12 @@ module Ripe
         end
       end
 
-      def self.print_options(workflow)
+
+      ##
+      # Print available options for workflow files 
+      # @param workflow [String] name of a the workflow
+      # @return nothing only prints to standard output
+    def self.print_options(workflow)
         puts ""
         puts "Available options for workflow : " + workflow
         puts "-------------------------------------"
