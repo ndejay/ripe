@@ -34,7 +34,7 @@ module Ripe
       # Checking for valid output_prefix
       if samples.length > 0 && !File.directory?(output_prefix)
         if output_prefix.include? "/"
-          abort "Directory #{output_prefix} do not exist"
+          abort "Directory #{output_prefix} does not exist"
         else
           puts "The sh files will be written in the current directory with #{output_prefix} as prefix"
           answer = [(print 'Is this what you want? [yes/no]'), STDIN.gets.rstrip][1]
