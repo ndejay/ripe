@@ -241,7 +241,7 @@ module Ripe
       worker_sh = worker.sh
       File.open(worker_sh, 'w') { |f| f.write(worker_block.command) }
 
-      puts worker.sh
+      puts worker_sh
 
       if params[:keep_trace]=="true"
         # Appending trace statements after blocks
