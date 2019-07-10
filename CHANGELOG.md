@@ -1,7 +1,9 @@
 HEAD
 ----
 
-v1.0.0b
+TODO
+
+v1.0.0
 -------
 
   - [ndejay/ripe#19](http://github.com/ndejay/ripe/issue/19): Keep a log file at the sample level.

@@ -5,7 +5,7 @@ require_relative 'lib/ripe/version'
 Gem::Specification.new do |spec|
   spec.name          = "ripe"
   spec.version       = Ripe::VERSION
-  spec.authors       = ["Nicolas De Jay"]
+  spec.authors       = ["Nicolas De Jay", "Steven Hebert", "Genevieve Boucher"]
   spec.email         = ["ndj+rubygems@pinkfilter.org"]
   spec.summary       = %q{A simple pipeline engine for batch processing.}
   # spec.description   = %q{Write a longer description. Optional.}
